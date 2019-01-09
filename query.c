@@ -295,7 +295,7 @@ int query_truncate(MYSQL *mysql, const char *path, off_t length)
 
     snprintf(sql, SQL_MAX,
              "UPDATE inodes SET size=%lld WHERE inode=%ld",
-             length, inode);
+             (long long)length, inode);
     log_printf(LOG_D_SQL, "sql=%s\n", sql);
     if ((ret = mysql_query(mysql, sql))) goto err_out;
 
@@ -788,16 +788,15 @@ static int write_one_block(MYSQL *mysql, long inode,
 		 "WHERE inode=%ld AND seq=%lu",
 		 inode, seq);
     } else {
-        size_t pos, new_size;
+        size_t pos;
         pos = snprintf(sql, sizeof(sql),
 		 "UPDATE data_blocks SET data=CONCAT(");
 	if (offset > 0)
-	    pos += snprintf(sql + pos, sizeof(sql) - pos, "RPAD(IF(ISNULL(data),'', data), %llu, '\\0'),", offset);
+	    pos += snprintf(sql + pos, sizeof(sql) - pos, "RPAD(IF(ISNULL(data),'', data), %llu, '\\0'),", (long long)offset);
 	pos += snprintf(sql + pos, sizeof(sql) - pos, "?,");
-	new_size = offset + size;
+
 	if (offset + size < current_block_size) {
-	    pos += snprintf(sql + pos, sizeof(sql) - pos, "SUBSTRING(data FROM %llu),", offset + size + 1);
-	    new_size = current_block_size;
+	    pos += snprintf(sql + pos, sizeof(sql) - pos, "SUBSTRING(data FROM %llu),", (long long)offset + size + 1);
 	}
 	sql[--pos] = '\0';	/* Remove the trailing comma. */
 	pos += snprintf(sql + pos, sizeof(sql) - pos, ") WHERE inode=%ld AND seq=%lu",
@@ -1217,7 +1216,6 @@ int query_fsck(MYSQL *mysql)
     // 1. delete inodes with deleted==1
     int ret;
 //    int ret2;
-    int result;
     char sql[SQL_MAX];
     printf("Stage 1...\n");
     snprintf(sql, SQL_MAX,
@@ -1295,7 +1293,7 @@ int query_fsck(MYSQL *mysql)
                      
       snprintf(sql, SQL_MAX, "update inodes set size=%ld where inode=%ld;", size, inode);
       log_printf(LOG_D_SQL, "sql=%s\n", sql);
-      result = mysql_query(mysql, sql);
+      mysql_query(mysql, sql);
 
 /*      if (myresult) { // something has gone wrong.. delete datablocks...
 
