@@ -1,0 +1,115 @@
+AT_INIT()
+
+AT_SETUP(Baseline Checksum)
+AT_CHECK([(cat @with_testfile@||cat @abs_top_builddir@/@with_testfile@) |@MD5SUM@],0,[@testfile_md5sum@
+],[ignore])
+AT_CLEANUP()
+
+AT_SETUP(DB Check)
+
+dnl -- didja actually install the DB?  Note that the results I got on MacOSX and linux differed (diff MySQL versions?) so I sed'd the output
+AT_CHECK([echo "show triggers where event='DELETE'"| @MYSQL@ --skip-column-names -u mysqlfs --password=password mysqlfs|sed -e 's/@localhost.*$/@localhost/g'],0,
+[drop_data	DELETE	inodes	BEGIN DELETE FROM data_blocks WHERE inode=OLD.inode; END	AFTER	NULL		root@localhost
+])
+AT_CHECK([echo "delete from inodes"       | @MYSQL@ --skip-column-names -u mysqlfs --password=password mysqlfs],0,[ignore],[ignore])
+AT_CHECK([echo "delete from tree"         | @MYSQL@ --skip-column-names -u mysqlfs --password=password mysqlfs],0,[ignore],[ignore])
+AT_CHECK([echo "delete from data_blocks"  | @MYSQL@ --skip-column-names -u mysqlfs --password=password mysqlfs],0,[ignore],[ignore])
+
+AT_CLEANUP()
+
+AT_SETUP(Basic Mount)
+AT_CHECK([@abs_top_builddir@/mysqlfs -odebug-dnq], 2,[],[DEBUG: Dump and Quit
+
+connect: mysql://(null):(null)@(null):0/(null)
+connect: sock://(null)
+fsck? no
+group: mysqlfs
+pool: 1 initial connections
+pool: 5 idling connections
+logfile: file://mysqlfs.log
+bg? no (debug)
+
+])
+
+AT_CHECK([@abs_top_builddir@/mysqlfs -obackground -ohost=localhost -ouser=mysqlfs -opassword=password -odatabase=mysqlfs -odebug-dnq], 2,[],[DEBUG: Dump and Quit
+
+connect: mysql://mysqlfs:password@localhost:0/mysqlfs
+connect: sock://(null)
+fsck? no
+group: mysqlfs
+pool: 1 initial connections
+pool: 5 idling connections
+logfile: file://mysqlfs.log
+bg? yes (debug)
+
+])
+
+AT_CHECK([@abs_top_builddir@/mysqlfs -obackground --port=1212 --host=localhost --user=mysqlfs --password=password -odatabase=mysqlfs -odebug-dnq], 2,[],[DEBUG: Dump and Quit
+
+connect: mysql://mysqlfs:password@localhost:1212/mysqlfs
+connect: sock://(null)
+fsck? no
+group: mysqlfs
+pool: 1 initial connections
+pool: 5 idling connections
+logfile: file://mysqlfs.log
+bg? yes (debug)
+
+])
+
+AT_CHECK([@abs_top_builddir@/mysqlfs -obackground -h localhost -P 4321 -u mysqlfs --password=password -D mysqlfs -odebug-dnq], 2,[],[DEBUG: Dump and Quit
+
+connect: mysql://mysqlfs:password@localhost:4321/mysqlfs
+connect: sock://(null)
+fsck? no
+group: mysqlfs
+pool: 1 initial connections
+pool: 5 idling connections
+logfile: file://mysqlfs.log
+bg? yes (debug)
+
+])
+
+AT_CHECK([@abs_top_builddir@/mysqlfs -oport=1234 -oinit_conns=4 -omax_idling_conns=6 -opassword=var3 -odatabase=var4 -omycnf_group=var5 -ologfile=var6 -odebug-dnq], 2,[],[DEBUG: Dump and Quit
+
+connect: mysql://(null):var3@(null):1234/var4
+connect: sock://(null)
+fsck? no
+group: var5
+pool: 1 initial connections
+pool: 5 idling connections
+logfile: file://var6
+bg? no (debug)
+
+])
+
+AT_CHECK([@abs_top_builddir@/mysqlfs -ofsck -oport=1234 -osocket=/dev/sock -ohost=var1 -ouser=var2 -opassword=var3 -odatabase=var4 -odebug-dnq], 2,[],[DEBUG: Dump and Quit
+
+connect: mysql://var2:var3@var1:1234/var4
+connect: sock:///dev/sock
+fsck? yes
+group: mysqlfs
+pool: 1 initial connections
+pool: 5 idling connections
+logfile: file://mysqlfs.log
+bg? no (debug)
+
+])
+
+dnl -- AT_CHECK([false],0,[ignore],[ignore])
+
+AT_CHECK([mkdir -p fs],0,[ignore],[ignore])
+AT_CHECK([@abs_top_builddir@/@at_testdir@/timeout -t 10 -- @abs_top_builddir@/mysqlfs -obackground -ohost=localhost -ouser=mysqlfs -opassword=password -odatabase=mysqlfs ./fs])
+ 
+AT_CHECK([find fs],0,[fs
+],[ignore])
+AT_CHECK([cp @with_testfile@ fs/ || cp @abs_top_builddir@/@with_testfile@ fs/],0,[ignore],[ignore])
+AT_CHECK([find fs],0,[fs
+fs/@with_testfile@
+],[ignore])
+
+AT_CHECK([cat fs/@with_testfile@|@MD5SUM@],0,[@testfile_md5sum@
+],[ignore])
+ 
+AT_CHECK([killall mysqlfs],[ignore],[ignore])
+AT_CLEANUP()

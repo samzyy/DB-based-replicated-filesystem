@@ -1,0 +1,130 @@
+dnl Process this file with autoconf to produce a configure script.
+dnl $Id: configure.in,v 1.10 2007/03/28 22:47:10 ludvigm Exp $
+
+dnl stepped this to a strictly numeric version -- the "-rc1-pre7.14a" stuff seems ambiguous and doesn't pass strcmp("..","..").  This will unify at 0.4.0
+AC_INIT(mysqlfs, 0.4.0)
+AM_INIT_AUTOMAKE([foreign dist-bzip2])
+AC_CONFIG_HEADERS(config.h)
+AC_CONFIG_SRCDIR([configure.in])
+AC_CONFIG_TESTDIR([tests-autotest])
+AC_PREFIX_PROGRAM([id])
+
+AC_ENABLE_SHARED(no)
+
+AC_DEFINE(FUSE_USE_VERSION, 25, [Fuse API Version])
+AC_DEFINE(MYSQL_MIN_VERSION, 50000, [Minimal supported MySQL version])
+
+AC_DEFINE(_FILE_OFFSET_BITS,64,[Use 64 bits file offsets])
+
+AC_ARG_WITH(mysql, [ AS_HELP_STRING([--with-mysql=DIR], [mysql directory ])])
+AC_ARG_WITH(fuse, [ AS_HELP_STRING([--with-fuse=DIR],[fuse directory ])])
+AC_ARG_WITH(testfile, [ AS_HELP_STRING([--with-testfile=FILE],[file to test copying to the filesystem])],,[with_testfile=configure])
+
+dnl Note: this is a GCC extension, this kills portability
+CFLAGS_ADD="-Wall -Werror"
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_LIBTOOL
+AC_CHECK_PROGS(DOXYGEN, [doxygen], missing)
+AM_CONDITIONAL(DO_DOXYGEN, test x$DOXYGEN != xmissing)
+AC_CHECK_PROGS(RPMBUILD, [rpmbuild], missing)
+AM_CONDITIONAL(DO_RPMBUILD, test x$RPMBUILD != xmissing)
+AC_CHECK_PROG(HAVE_DOXYGEN,[doxygen],yes)
+AC_CHECK_PROG(HAVE_DOT,[dot],YES,NO)
+AC_CHECK_PROGS(MD5SUM, [md5 md5sum], missing)
+AC_CHECK_PROGS(MYSQL, [mysql /usr/local/bin/mysql /usr/local/mysql/bin/mysql], missing)
+
+testfile_md5sum=`cat $with_testfile|${MD5SUM}`
+AC_SUBST(with_testfile)
+AC_SUBST(testfile_md5sum)
+
+dnl Because I keep forgetting that we need to treat MacOSX like BSD
+case $ac_cv_build in
+*-apple-darwin*)
+	CFLAGS_ADD="$CFLAGS_ADD -D __FreeBSD__=10" ;;
+esac
+
+AC_SUBST(AUTOM4TE, autom4te)
+
+for i in /usr/local/fuse /usr/local /usr; do
+  if test -r $i/include/fuse.h; then
+    FUSE_DIR=$i
+    FUSE_LIB_DIR=$i/lib
+    FUSE_INC_DIR=$i/include
+    break
+  fi
+done
+if test x${FUSE_LIB_DIR} != x
+then
+  FUSE_LDFLAGS="-L${FUSE_LIB_DIR}"
+  FUSE_CFLAGS="-I${FUSE_INC_DIR}"
+  LDFLAGS="$LDFLAGS $FUSE_LDFLAGS"
+  CFLAGS="$CFLAGS $FUSE_CFLAGS"
+  CPPFLAGS="$CPPFLAGS $FUSE_CFLAGS"
+fi
+
+MYSQL_CONFIG=$(which mysql_config)
+if test "$MYSQL_CONFIG"; then
+  MYSQL_LDFLAGS=$(${MYSQL_CONFIG} --libs_r)
+  MYSQL_CFLAGS=$(${MYSQL_CONFIG} --include)
+else
+  for i in /usr/local/mysql /usr/local /usr; do
+    if test -r $i/include/mysql/mysql.h; then
+      MYSQL_DIR=$i
+      MYSQL_LIB_DIR=$i/lib/mysql
+      MYSQL_INC_DIR=$i/include/mysql
+      break
+    elif test -r $i/include/mysql.h; then
+      MYSQL_DIR=$i
+      MYSQL_LIB_DIR=$i/lib
+      MYSQL_INC_DIR=$i/include
+      break
+    fi
+  done
+  if test x${MYSQL_LIB_DIR} != x
+  then
+    MYSQL_LDFLAGS="-L${MYSQL_LIB_DIR}"
+    MYSQL_CFLAGS="-I${MYSQL_INC_DIR}"
+  fi
+fi
+LDFLAGS="$LDFLAGS $MYSQL_LDFLAGS"
+CFLAGS="$CFLAGS $CFLAGS_ADD $MYSQL_CFLAGS"
+CPPFLAGS="$CPPFLAGS $MYSQL_CFLAGS"
+
+dnl Checks for libraries.
+AC_SEARCH_LIBS(mysql_init, mysqlclient,, AC_MSG_ERROR([Please install mysqlclient library first.]))
+AC_SEARCH_LIBS(pthread_create, pthread,, AC_MSG_ERROR([Please install pthreads library first.]))
+AC_SEARCH_LIBS(fuse_main, fuse,, AC_MSG_ERROR([Please install fuse library first.]))
+
+dnl Checks for header files. (mac -- and BSD? -- have statfs in mount.h)
+AC_CHECK_HEADERS(stdio.h sys/param.h sys/mount.h)
+
+AC_CHECK_HEADERS(fuse/fuse.h,, AC_MSG_ERROR([Please install FUSE development package]))
+AC_MSG_CHECKING(FUSE API version)
+AC_EGREP_CPP(yes, [#include <fuse/fuse.h>
+#if FUSE_VERSION >= FUSE_USE_VERSION
+yes
+#endif], [AC_MSG_RESULT(ok)], [AC_MSG_RESULT(too old)
+        AC_MSG_ERROR([FUSE version 2.5 or higher is required.])
+])
+
+dnl check for one header location, and if not found, try the second.  Is this possible in a AC_* while still offering the error message?
+AC_CHECK_HEADERS(mysql.h ,, [AC_CHECK_HEADERS(mysql/mysql.h,, AC_MSG_ERROR([Please install MySQL development package]))] )
+
+AC_MSG_CHECKING(MySQL version)
+AC_EGREP_CPP(yes, [
+#ifdef HAVE_MYSQL_MYSQL_H
+#include <mysql/mysql_version.h>
+#endif
+#ifdef HAVE_MYSQL_H
+#include <mysql_version.h>
+#endif
+#if MYSQL_VERSION_ID > MYSQL_MIN_VERSION
+yes
+#endif], [AC_MSG_RESULT(ok)], [AC_MSG_RESULT(too old)
+        AC_MSG_ERROR([MySQL version 5.0 or higher is required.])
+])
+
+CFLAGS="$CFLAGS $CFLAGS_ADD"
+AC_OUTPUT(Makefile tests-autotest/Makefile tests-autotest/atlocal tests-autotest/testsuite.at mysqlfs.spec:pkg/mysqlfs.spec.in Doxyfile:pkg/Doxyfile.in pkg/doc-mainpage.c)

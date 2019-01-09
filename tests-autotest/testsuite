@@ -1,0 +1,1636 @@
+#! /bin/sh
+## --------------------- ##
+## M4sh Initialization.  ##
+## --------------------- ##
+
+# Be Bourne compatible
+if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then
+  emulate sh
+  NULLCMD=:
+  # Zsh 3.x and 4.x performs word splitting on ${1+"$@"}, which
+  # is contrary to our usage.  Disable this feature.
+  alias -g '${1+"$@"}'='"$@"'
+elif test -n "${BASH_VERSION+set}" && (set -o posix) >/dev/null 2>&1; then
+  set -o posix
+fi
+DUALCASE=1; export DUALCASE # for MKS sh
+
+# Support unset when possible.
+if ( (MAIL=60; unset MAIL) || exit) >/dev/null 2>&1; then
+  as_unset=unset
+else
+  as_unset=false
+fi
+
+
+# Work around bugs in pre-3.0 UWIN ksh.
+$as_unset ENV MAIL MAILPATH
+PS1='$ '
+PS2='> '
+PS4='+ '
+
+# NLS nuisances.
+for as_var in \
+  LANG LANGUAGE LC_ADDRESS LC_ALL LC_COLLATE LC_CTYPE LC_IDENTIFICATION \
+  LC_MEASUREMENT LC_MESSAGES LC_MONETARY LC_NAME LC_NUMERIC LC_PAPER \
+  LC_TELEPHONE LC_TIME
+do
+  if (set +x; test -z "`(eval $as_var=C; export $as_var) 2>&1`"); then
+    eval $as_var=C; export $as_var
+  else
+    $as_unset $as_var
+  fi
+done
+
+# Required to use basename.
+if expr a : '\(a\)' >/dev/null 2>&1; then
+  as_expr=expr
+else
+  as_expr=false
+fi
+
+if (basename /) >/dev/null 2>&1 && test "X`basename / 2>&1`" = "X/"; then
+  as_basename=basename
+else
+  as_basename=false
+fi
+
+
+# Name of the executable.
+as_me=`$as_basename "$0" ||
+$as_expr X/"$0" : '.*/\([^/][^/]*\)/*$' \| \
+	 X"$0" : 'X\(//\)$' \| \
+	 X"$0" : 'X\(/\)$' \| \
+	 .     : '\(.\)' 2>/dev/null ||
+echo X/"$0" |
+    sed '/^.*\/\([^/][^/]*\)\/*$/{ s//\1/; q; }
+  	  /^X\/\(\/\/\)$/{ s//\1/; q; }
+  	  /^X\/\(\/\).*/{ s//\1/; q; }
+  	  s/.*/./; q'`
+
+
+# PATH needs CR, and LINENO needs CR and PATH.
+# Avoid depending upon Character Ranges.
+as_cr_letters='abcdefghijklmnopqrstuvwxyz'
+as_cr_LETTERS='ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+as_cr_Letters=$as_cr_letters$as_cr_LETTERS
+as_cr_digits='0123456789'
+as_cr_alnum=$as_cr_Letters$as_cr_digits
+
+# The user is always right.
+if test "${PATH_SEPARATOR+set}" != set; then
+  echo "#! /bin/sh" >conf$$.sh
+  echo  "exit 0"   >>conf$$.sh
+  chmod +x conf$$.sh
+  if (PATH="/nonexistent;."; conf$$.sh) >/dev/null 2>&1; then
+    PATH_SEPARATOR=';'
+  else
+    PATH_SEPARATOR=:
+  fi
+  rm -f conf$$.sh
+fi
+
+
+  as_lineno_1=$LINENO
+  as_lineno_2=$LINENO
+  as_lineno_3=`(expr $as_lineno_1 + 1) 2>/dev/null`
+  test "x$as_lineno_1" != "x$as_lineno_2" &&
+  test "x$as_lineno_3"  = "x$as_lineno_2"  || {
+  # Find who we are.  Look in the path if we contain no path at all
+  # relative or not.
+  case $0 in
+    *[\\/]* ) as_myself=$0 ;;
+    *) as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  test -r "$as_dir/$0" && as_myself=$as_dir/$0 && break
+done
+
+       ;;
+  esac
+  # We did not find ourselves, most probably we were run as `sh COMMAND'
+  # in which case we are not to be found in the path.
+  if test "x$as_myself" = x; then
+    as_myself=$0
+  fi
+  if test ! -f "$as_myself"; then
+    { echo "$as_me: error: cannot find myself; rerun with an absolute path" >&2
+   { (exit 1); exit 1; }; }
+  fi
+  case $CONFIG_SHELL in
+  '')
+    as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in /bin$PATH_SEPARATOR/usr/bin$PATH_SEPARATOR$PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for as_base in sh bash ksh sh5; do
+	 case $as_dir in
+	 /*)
+	   if ("$as_dir/$as_base" -c '
+  as_lineno_1=$LINENO
+  as_lineno_2=$LINENO
+  as_lineno_3=`(expr $as_lineno_1 + 1) 2>/dev/null`
+  test "x$as_lineno_1" != "x$as_lineno_2" &&
+  test "x$as_lineno_3"  = "x$as_lineno_2" ') 2>/dev/null; then
+	     $as_unset BASH_ENV || test "${BASH_ENV+set}" != set || { BASH_ENV=; export BASH_ENV; }
+	     $as_unset ENV || test "${ENV+set}" != set || { ENV=; export ENV; }
+	     CONFIG_SHELL=$as_dir/$as_base
+	     export CONFIG_SHELL
+	     exec "$CONFIG_SHELL" "$0" ${1+"$@"}
+	   fi;;
+	 esac
+       done
+done
+;;
+  esac
+
+  # Create $as_me.lineno as a copy of $as_myself, but with $LINENO
+  # uniformly replaced by the line number.  The first 'sed' inserts a
+  # line-number line before each line; the second 'sed' does the real
+  # work.  The second script uses 'N' to pair each line-number line
+  # with the numbered line, and appends trailing '-' during
+  # substitution so that $LINENO is not a special case at line end.
+  # (Raja R Harinath suggested sed '=', and Paul Eggert wrote the
+  # second 'sed' script.  Blame Lee E. McMahon for sed's syntax.  :-)
+  sed '=' <$as_myself |
+    sed '
+      N
+      s,$,-,
+      : loop
+      s,^\(['$as_cr_digits']*\)\(.*\)[$]LINENO\([^'$as_cr_alnum'_]\),\1\2\1\3,
+      t loop
+      s,-$,,
+      s,^['$as_cr_digits']*\n,,
+    ' >$as_me.lineno &&
+  chmod +x $as_me.lineno ||
+    { echo "$as_me: error: cannot create $as_me.lineno; rerun with a POSIX shell" >&2
+   { (exit 1); exit 1; }; }
+
+  # Don't try to exec as it changes $[0], causing all sort of problems
+  # (the dirname of $[0] is not the place where we might find the
+  # original and so on.  Autoconf is especially sensible to this).
+  . ./$as_me.lineno
+  # Exit status is that of the last command.
+  exit
+}
+
+
+case `echo "testing\c"; echo 1,2,3`,`echo -n testing; echo 1,2,3` in
+  *c*,-n*) ECHO_N= ECHO_C='
+' ECHO_T='	' ;;
+  *c*,*  ) ECHO_N=-n ECHO_C= ECHO_T= ;;
+  *)       ECHO_N= ECHO_C='\c' ECHO_T= ;;
+esac
+
+if expr a : '\(a\)' >/dev/null 2>&1; then
+  as_expr=expr
+else
+  as_expr=false
+fi
+
+rm -f conf$$ conf$$.exe conf$$.file
+echo >conf$$.file
+if ln -s conf$$.file conf$$ 2>/dev/null; then
+  # We could just check for DJGPP; but this test a) works b) is more generic
+  # and c) will remain valid once DJGPP supports symlinks (DJGPP 2.04).
+  if test -f conf$$.exe; then
+    # Don't use ln at all; we don't have any links
+    as_ln_s='cp -p'
+  else
+    as_ln_s='ln -s'
+  fi
+elif ln conf$$.file conf$$ 2>/dev/null; then
+  as_ln_s=ln
+else
+  as_ln_s='cp -p'
+fi
+rm -f conf$$ conf$$.exe conf$$.file
+
+if mkdir -p . 2>/dev/null; then
+  as_mkdir_p=:
+else
+  test -d ./-p && rmdir ./-p
+  as_mkdir_p=false
+fi
+
+as_executable_p="test -f"
+
+# Sed expression to map a string onto a valid CPP name.
+as_tr_cpp="eval sed 'y%*$as_cr_letters%P$as_cr_LETTERS%;s%[^_$as_cr_alnum]%_%g'"
+
+# Sed expression to map a string onto a valid variable name.
+as_tr_sh="eval sed 'y%*+%pp%;s%[^_$as_cr_alnum]%_%g'"
+
+
+# IFS
+# We need space, tab and new line, in precisely that order.
+as_nl='
+'
+IFS=" 	$as_nl"
+
+# CDPATH.
+$as_unset CDPATH
+
+
+SHELL=${CONFIG_SHELL-/bin/sh}
+
+# How were we run?
+at_cli_args="$@"
+
+# Load the config file.
+for at_file in atconfig atlocal
+do
+  test -r $at_file || continue
+  . ./$at_file || { echo "$as_me: error: invalid content: $at_file" >&2
+   { (exit 1); exit 1; }; }
+done
+
+# atconfig delivers paths relative to the directory the test suite is
+# in, but the groups themselves are run in testsuite-dir/group-dir.
+if test -n "$at_top_srcdir"; then
+  builddir=../..
+  for at_dir in srcdir top_srcdir top_builddir
+  do
+    at_val=`eval echo '${'at_$at_dir'}'`
+    eval "$at_dir=\$at_val/../.."
+  done
+fi
+
+# Not all shells have the 'times' builtin; the subshell is needed to make
+# sure we discard the 'times: not found' message from the shell.
+at_times_p=false
+(times) >/dev/null 2>&1 && at_times_p=:
+
+# CLI Arguments to pass to the debugging scripts.
+at_debug_args=
+# -e sets to true
+at_errexit_p=false
+# Shall we be verbose?
+at_verbose=:
+at_quiet=echo
+
+# Shall we keep the debug scripts?  Must be `:' when the suite is
+# run by a debug script, so that the script doesn't remove itself.
+at_debug_p=false
+# Display help message?
+at_help_p=false
+# List test groups?
+at_list_p=false
+# Test groups to run
+at_groups=
+
+# The directory we are in.
+at_dir=`pwd`
+# The directory the whole suite works in.
+# Should be absolutely to let the user `cd' at will.
+at_suite_dir=$at_dir/$as_me.dir
+# The file containing the suite.
+at_suite_log=$at_dir/$as_me.log
+# The file containing the location of the last AT_CHECK.
+at_check_line_file=$at_suite_dir/at-check-line
+# The file containing the exit status of the last command.
+at_status_file=$at_suite_dir/at-status
+# The files containing the output of the tested commands.
+at_stdout=$at_suite_dir/at-stdout
+at_stder1=$at_suite_dir/at-stder1
+at_stderr=$at_suite_dir/at-stderr
+# The file containing dates.
+at_times_file=$at_suite_dir/at-times
+
+# List of the tested programs.
+at_tested=''
+# List of the all the test groups.
+at_groups_all=' 1 2 3'
+# As many dots as there are digits in the last test group number.
+# Used to normalize the test group numbers so that `ls' lists them in
+# numerical order.
+at_format='.'
+# Description of all the test groups.
+at_help_all='1;testsuite.at:3;Baseline Checksum;;
+2;testsuite.at:8;DB Check;;
+3;testsuite.at:20;Basic Mount;;
+'
+
+at_keywords=
+at_prev=
+for at_option
+do
+  # If the previous option needs an argument, assign it.
+  if test -n "$at_prev"; then
+    at_option=$at_prev=$at_option
+    at_prev=
+  fi
+
+  at_optarg=`expr "x$at_option" : 'x[^=]*=\(.*\)'`
+
+  # Accept the important Cygnus configure options, so we can diagnose typos.
+
+  case $at_option in
+    --help | -h )
+	at_help_p=:
+	;;
+
+    --list | -l )
+	at_list_p=:
+	;;
+
+    --version | -V )
+	echo "$as_me (mysqlfs 0.4.0)"
+	exit 0
+	;;
+
+    --clean | -c )
+	rm -rf $at_suite_dir $at_suite_log
+	exit 0
+	;;
+
+    --debug | -d )
+	at_debug_p=:
+	;;
+
+    --errexit | -e )
+	at_debug_p=:
+	at_errexit_p=:
+	;;
+
+    --verbose | -v )
+	at_verbose=echo; at_quiet=:
+	;;
+
+    --trace | -x )
+	at_traceon='set -vx'; at_traceoff='set +vx'
+	;;
+
+    [0-9] | [0-9][0-9] | [0-9][0-9][0-9] | [0-9][0-9][0-9][0-9])
+	at_groups="$at_groups$at_option "
+	;;
+
+    # Ranges
+    [0-9]- | [0-9][0-9]- | [0-9][0-9][0-9]- | [0-9][0-9][0-9][0-9]-)
+	at_range_start=`echo $at_option |tr -d '-'`
+	at_range=`echo " $at_groups_all " | \
+	  sed -e 's,^.* '$at_range_start' ,'$at_range_start' ,'`
+	at_groups="$at_groups$at_range "
+	;;
+
+    -[0-9] | -[0-9][0-9] | -[0-9][0-9][0-9] | -[0-9][0-9][0-9][0-9])
+	at_range_end=`echo $at_option |tr -d '-'`
+	at_range=`echo " $at_groups_all " | \
+	  sed -e 's, '$at_range_end' .*$, '$at_range_end','`
+	at_groups="$at_groups$at_range "
+	;;
+
+    [0-9]-[0-9] | [0-9]-[0-9][0-9] | [0-9]-[0-9][0-9][0-9] | \
+    [0-9]-[0-9][0-9][0-9][0-9] | [0-9][0-9]-[0-9][0-9] | \
+    [0-9][0-9]-[0-9][0-9][0-9] | [0-9][0-9]-[0-9][0-9][0-9][0-9] | \
+    [0-9][0-9][0-9]-[0-9][0-9][0-9] | \
+    [0-9][0-9][0-9]-[0-9][0-9][0-9][0-9] | \
+    [0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9] )
+	at_range_start=`echo $at_option |sed 's,-.*,,'`
+	at_range_end=`echo $at_option |sed 's,.*-,,'`
+	# FIXME: Maybe test to make sure start <= end?
+	at_range=`echo " $at_groups_all " | \
+	  sed -e 's,^.* '$at_range_start' ,'$at_range_start' ,' \
+	      -e 's, '$at_range_end' .*$, '$at_range_end','`
+	at_groups="$at_groups$at_range "
+	;;
+
+    # Keywords.
+    --keywords | -k )
+	at_prev=--keywords
+	;;
+    --keywords=* )
+	at_keywords="$at_keywords,$at_optarg"
+	;;
+
+    *=*)
+  	at_envvar=`expr "x$at_option" : 'x\([^=]*\)='`
+  	# Reject names that are not valid shell variable names.
+  	expr "x$at_envvar" : ".*[^_$as_cr_alnum]" >/dev/null &&
+  	  { echo "$as_me: error: invalid variable name: $at_envvar" >&2
+   { (exit 1); exit 1; }; }
+  	at_value=`echo "$at_optarg" | sed "s/'/'\\\\\\\\''/g"`
+  	eval "$at_envvar='$at_value'"
+  	export $at_envvar
+	# Propagate to debug scripts.
+  	at_debug_args="$at_debug_args $at_option"
+  	;;
+
+     *) echo "$as_me: invalid option: $at_option" >&2
+	echo "Try \`$0 --help' for more information." >&2
+	exit 1
+	;;
+  esac
+done
+
+# Process the --keywords
+if test -n "$at_keywords"; then
+  at_groups_selected=$at_help_all
+  for at_keyword in `IFS=,; set X $at_keywords; shift; echo ${1+$@}`
+  do
+    # It is on purpose that we match the test group titles too.
+    at_groups_selected=`echo "$at_groups_selected" |
+			grep -i "^[^;]*;[^;]*.*[; ]$at_keyword[ ;]"`
+  done
+  at_groups_selected=`echo "$at_groups_selected" | sed 's/;.*//'`
+  # Smash the end of lines.
+  at_groups_selected=`echo $at_groups_selected`
+  at_groups="$at_groups$at_groups_selected "
+fi
+
+# Selected test groups.
+test -z "$at_groups" && at_groups=$at_groups_all
+
+# Help message.
+if $at_help_p; then
+  cat <<_ATEOF
+Usage: $0 [OPTION]... [VARIABLE=VALUE]... [TESTS]
+
+Run all the tests, or the selected TESTS, and save a detailed log file.
+Upon failure, create debugging scripts.
+
+You should not change environment variables unless explicitly passed
+as command line arguments.  Set \`AUTOTEST_PATH' to select the executables
+to exercise.  Each relative directory is expanded as build and source
+directories relatively to the top level of this distribution.  E.g.,
+
+  $ $0 AUTOTEST_PATH=bin
+
+possibly amounts into
+
+  PATH=/tmp/foo-1.0/bin:/src/foo-1.0/bin:\$PATH
+_ATEOF
+cat <<_ATEOF
+
+Operation modes:
+  -h, --help     print the help message, then exit
+  -V, --version  print version number, then exit
+  -c, --clean    remove all the files this test suite might create and exit
+  -l, --list     describes all the tests, or the selected TESTS
+_ATEOF
+cat <<_ATEOF
+
+Execution tuning:
+  -k, --keywords=KEYWORDS
+	         select the tests matching all the comma separated KEYWORDS
+	         accumulates
+  -e, --errexit  abort as soon as a test fails; implies --debug
+  -v, --verbose  force more detailed output
+	         default for debugging scripts
+  -d, --debug    inhibit clean up and debug script creation
+	         default for debugging scripts
+  -x, --trace    enable tests shell tracing
+_ATEOF
+cat <<_ATEOF
+
+Report bugs to <>.
+_ATEOF
+  exit 0
+fi
+
+# List of tests.
+if $at_list_p; then
+  cat <<_ATEOF
+mysqlfs 0.4.0 test suite test groups:
+
+ NUM: FILENAME:LINE      TEST-GROUP-NAME
+      KEYWORDS
+
+_ATEOF
+  # "  1 42  45 " => "^(1|42|45);".
+  at_groups_pattern=`echo "$at_groups" | sed 's/^  *//;s/  *$//;s/  */|/g'`
+  echo "$at_help_all" |
+    awk 'BEGIN { FS = ";" }
+	 { if ($1 !~ /^('"$at_groups_pattern"')$/) next }
+	 { if ($1) printf " %3d: %-18s %s\n", $1, $2, $3
+	   if ($4) printf "      %s\n", $4 } '
+  exit 0
+fi
+
+# Don't take risks: use only absolute directories in PATH.
+#
+# For stand-alone test suites, AUTOTEST_PATH is relative to `.'.
+#
+# For embedded test suites, AUTOTEST_PATH is relative to the top level
+# of the package.  Then expand it into build/src parts, since users
+# may create executables in both places.
+#
+# There might be directories that don't exist, but don't redirect
+# builtins' (eg., cd) stderr directly: Ultrix's sh hates that.
+AUTOTEST_PATH=`echo $AUTOTEST_PATH | tr ':' $PATH_SEPARATOR`
+at_path=
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $AUTOTEST_PATH $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  case $as_dir in
+  [\\/]* | ?:[\\/]* )
+    at_path=$at_path$PATH_SEPARATOR$as_dir
+    ;;
+  * )
+    if test -z "$at_top_builddir"; then
+      # Stand-alone test suite.
+      at_path=$at_path$PATH_SEPARATOR$as_dir
+    else
+      # Embedded test suite.
+      at_path=$at_path$PATH_SEPARATOR$at_top_builddir/$as_dir
+      at_path=$at_path$PATH_SEPARATOR$at_top_srcdir/$as_dir
+    fi
+    ;;
+esac
+done
+
+
+# Now build and simplify PATH.
+PATH=
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $at_path
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  as_dir=`(cd "$as_dir" && pwd) 2>/dev/null`
+test -d "$as_dir" || continue
+case $PATH in
+	          $as_dir                 | \
+	          $as_dir$PATH_SEPARATOR* | \
+  *$PATH_SEPARATOR$as_dir                 | \
+  *$PATH_SEPARATOR$as_dir$PATH_SEPARATOR* ) ;;
+
+  '') PATH=$as_dir ;;
+   *) PATH=$PATH$PATH_SEPARATOR$as_dir ;;
+esac
+done
+
+export PATH
+
+# Setting up the FDs.
+# 5 is the log file.  Not to be overwritten if `-d'.
+
+$at_debug_p && at_suite_log=/dev/null
+exec 5>$at_suite_log
+
+# Banners and logs.
+cat <<\_ASBOX
+## ------------------------- ##
+## mysqlfs 0.4.0 test suite. ##
+## ------------------------- ##
+_ASBOX
+{
+  cat <<\_ASBOX
+## ------------------------- ##
+## mysqlfs 0.4.0 test suite. ##
+## ------------------------- ##
+_ASBOX
+  echo
+
+  echo "$as_me: command line was:"
+  echo "  $ $0 $at_cli_args"
+  echo
+
+  # Try to find a few ChangeLogs in case it might help determining the
+  # exact version.  Use the relative dir: if the top dir is a symlink,
+  # find will not follow it (and options to follow the links are not
+  # portable), which would result in no output here.
+  if test -n "$at_top_srcdir"; then
+    cat <<\_ASBOX
+## ----------- ##
+## ChangeLogs. ##
+## ----------- ##
+_ASBOX
+    echo
+    for at_file in `find "$at_top_srcdir" -name ChangeLog -print`
+    do
+      echo "$as_me: $at_file:"
+      sed 's/^/| /;10q' $at_file
+      echo
+    done
+
+    {
+cat <<_ASUNAME
+## --------- ##
+## Platform. ##
+## --------- ##
+
+hostname = `(hostname || uname -n) 2>/dev/null | sed 1q`
+uname -m = `(uname -m) 2>/dev/null || echo unknown`
+uname -r = `(uname -r) 2>/dev/null || echo unknown`
+uname -s = `(uname -s) 2>/dev/null || echo unknown`
+uname -v = `(uname -v) 2>/dev/null || echo unknown`
+
+/usr/bin/uname -p = `(/usr/bin/uname -p) 2>/dev/null || echo unknown`
+/bin/uname -X     = `(/bin/uname -X) 2>/dev/null     || echo unknown`
+
+/bin/arch              = `(/bin/arch) 2>/dev/null              || echo unknown`
+/usr/bin/arch -k       = `(/usr/bin/arch -k) 2>/dev/null       || echo unknown`
+/usr/convex/getsysinfo = `(/usr/convex/getsysinfo) 2>/dev/null || echo unknown`
+hostinfo               = `(hostinfo) 2>/dev/null               || echo unknown`
+/bin/machine           = `(/bin/machine) 2>/dev/null           || echo unknown`
+/usr/bin/oslevel       = `(/usr/bin/oslevel) 2>/dev/null       || echo unknown`
+/bin/universe          = `(/bin/universe) 2>/dev/null          || echo unknown`
+
+_ASUNAME
+
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  echo "PATH: $as_dir"
+done
+
+}
+    echo
+  fi
+
+  # Contents of the config files.
+  for at_file in atconfig atlocal
+  do
+    test -r $at_file || continue
+    echo "$as_me: $at_file:"
+    sed 's/^/| /' $at_file
+    echo
+  done
+
+  cat <<\_ASBOX
+## ---------------- ##
+## Tested programs. ##
+## ---------------- ##
+_ASBOX
+  echo
+} >&5
+
+# Report what programs are being tested.
+for at_program in : $at_tested
+do
+  test "$at_program" = : && continue
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  test -f $as_dir/$at_program && break
+done
+
+  if test -f $as_dir/$at_program; then
+    {
+      echo "testsuite.at:1: $as_dir/$at_program --version"
+      $as_dir/$at_program --version
+      echo
+    } >&5 2>&1
+  else
+    { { echo "$as_me:$LINENO: error: cannot find $at_program" >&5
+echo "$as_me: error: cannot find $at_program" >&2;}
+   { (exit 1); exit 1; }; }
+  fi
+done
+
+{
+  cat <<\_ASBOX
+## ------------------ ##
+## Running the tests. ##
+## ------------------ ##
+_ASBOX
+} >&5
+
+at_start_date=`date`
+at_start_time=`(date +%s) 2>/dev/null`
+echo "$as_me: starting at: $at_start_date" >&5
+at_xpass_list=
+at_xfail_list=
+at_pass_list=
+at_fail_list=
+at_skip_list=
+at_group_count=0
+
+# Create the master directory if it doesn't already exist.
+test -d $at_suite_dir ||
+  mkdir $at_suite_dir ||
+  { { echo "$as_me:$LINENO: error: cannot create $at_suite_dir" >&5
+echo "$as_me: error: cannot create $at_suite_dir" >&2;}
+   { (exit 1); exit 1; }; }
+
+# Can we diff with `/dev/null'?  DU 5.0 refuses.
+if diff /dev/null /dev/null >/dev/null 2>&1; then
+  at_devnull=/dev/null
+else
+  at_devnull=$at_suite_dir/devnull
+  cp /dev/null $at_devnull
+fi
+
+# Use `diff -u' when possible.
+if diff -u $at_devnull $at_devnull >/dev/null 2>&1; then
+  at_diff='diff -u'
+else
+  at_diff=diff
+fi
+
+
+for at_group in $at_groups
+do
+  # Be sure to come back to the top test directory.
+  cd $at_suite_dir
+
+  case $at_group in
+    banner-*)
+      at_group_log=$at_suite_log
+      ;;
+
+    *)
+      # Skip tests we already run (using --keywords makes it easy to get
+      # duplication).
+      case " $at_pass_test $at_skip_test $at_fail_test " in
+	*" $at_group "* ) continue;;
+      esac
+
+      # Normalize the test group number.
+      at_group_normalized=`expr "00000$at_group" : ".*\($at_format\)"`
+
+      # Create a fresh directory for the next test group, and enter.
+      at_group_dir=$at_suite_dir/$at_group_normalized
+      at_group_log=$at_group_dir/$as_me.log
+      rm -rf $at_group_dir
+      mkdir $at_group_dir ||
+	{ { echo "$as_me:$LINENO: error: cannot create $at_group_dir" >&5
+echo "$as_me: error: cannot create $at_group_dir" >&2;}
+   { (exit 1); exit 1; }; }
+      cd $at_group_dir
+      ;;
+  esac
+
+  echo 0 > $at_status_file
+
+  # Clearly separate the test groups when verbose.
+  test $at_group_count != 0 && $at_verbose
+
+  # In verbose mode, append to the log file *and* show on
+  # the standard output; in quiet mode only write to the log
+  if test $at_verbose = echo; then
+    at_tee_pipe="tee -a $at_group_log"
+  else
+    at_tee_pipe="cat >> $at_group_log"
+  fi
+
+  case $at_group in
+  1 ) # 1. testsuite.at:3: Baseline Checksum
+    at_setup_line='testsuite.at:3'
+    at_desc='Baseline Checksum'
+    $at_quiet $ECHO_N "  1: Baseline Checksum                            $ECHO_C"
+    at_xfail=no
+    (
+      echo "1. testsuite.at:3: testing ..."
+      $at_traceon
+
+$at_traceoff
+echo "testsuite.at:5: (cat configure||cat /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././configure) |md5sum"
+echo testsuite.at:5 >$at_check_line_file
+( $at_traceon; (cat configure||cat /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././configure) |md5sum ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo stderr:; cat $at_stderr
+echo >>$at_stdout; echo "41d44a5c3c9141a31a47443441b422da  -
+" | $at_diff - $at_stdout || at_failed=:
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   0) ;;
+   *) echo "testsuite.at:5: exit code was $at_status, expected 0"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+      $at_traceoff
+      $at_times_p && times >$at_times_file
+    ) 5>&1 2>&1 | eval $at_tee_pipe
+    at_status=`cat $at_status_file`
+    ;;
+
+  2 ) # 2. testsuite.at:8: DB Check
+    at_setup_line='testsuite.at:8'
+    at_desc='DB Check'
+    $at_quiet $ECHO_N "  2: DB Check                                     $ECHO_C"
+    at_xfail=no
+    (
+      echo "2. testsuite.at:8: testing ..."
+      $at_traceon
+
+
+$at_traceoff
+echo "testsuite.at:13: echo \"show triggers where event='DELETE'\"| mysql --skip-column-names -u mysqlfs --password=password mysqlfs|sed -e 's/@localhost.*\$/@localhost/g'"
+echo testsuite.at:13 >$at_check_line_file
+( $at_traceon; echo "show triggers where event='DELETE'"| mysql --skip-column-names -u mysqlfs --password=password mysqlfs|sed -e 's/@localhost.*$/@localhost/g' ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+$at_diff $at_devnull $at_stderr || at_failed=:
+echo >>$at_stdout; echo "drop_data	DELETE	inodes	BEGIN DELETE FROM data_blocks WHERE inode=OLD.inode; END	AFTER	NULL		root@localhost
+" | $at_diff - $at_stdout || at_failed=:
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   0) ;;
+   *) echo "testsuite.at:13: exit code was $at_status, expected 0"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+$at_traceoff
+echo "testsuite.at:14: echo \"delete from inodes\"       | mysql --skip-column-names -u mysqlfs --password=password mysqlfs"
+echo testsuite.at:14 >$at_check_line_file
+( $at_traceon; echo "delete from inodes"       | mysql --skip-column-names -u mysqlfs --password=password mysqlfs ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo stderr:; cat $at_stderr
+echo stdout:; cat $at_stdout
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   0) ;;
+   *) echo "testsuite.at:14: exit code was $at_status, expected 0"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+$at_traceoff
+echo "testsuite.at:15: echo \"delete from tree\"         | mysql --skip-column-names -u mysqlfs --password=password mysqlfs"
+echo testsuite.at:15 >$at_check_line_file
+( $at_traceon; echo "delete from tree"         | mysql --skip-column-names -u mysqlfs --password=password mysqlfs ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo stderr:; cat $at_stderr
+echo stdout:; cat $at_stdout
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   0) ;;
+   *) echo "testsuite.at:15: exit code was $at_status, expected 0"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+$at_traceoff
+echo "testsuite.at:16: echo \"delete from data_blocks\"  | mysql --skip-column-names -u mysqlfs --password=password mysqlfs"
+echo testsuite.at:16 >$at_check_line_file
+( $at_traceon; echo "delete from data_blocks"  | mysql --skip-column-names -u mysqlfs --password=password mysqlfs ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo stderr:; cat $at_stderr
+echo stdout:; cat $at_stdout
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   0) ;;
+   *) echo "testsuite.at:16: exit code was $at_status, expected 0"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+
+      $at_traceoff
+      $at_times_p && times >$at_times_file
+    ) 5>&1 2>&1 | eval $at_tee_pipe
+    at_status=`cat $at_status_file`
+    ;;
+
+  3 ) # 3. testsuite.at:20: Basic Mount
+    at_setup_line='testsuite.at:20'
+    at_desc='Basic Mount'
+    $at_quiet $ECHO_N "  3: Basic Mount                                  $ECHO_C"
+    at_xfail=no
+    (
+      echo "3. testsuite.at:20: testing ..."
+      $at_traceon
+
+$at_traceoff
+echo "testsuite.at:32: /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././mysqlfs -odebug-dnq"
+echo testsuite.at:32 >$at_check_line_file
+( $at_traceon; /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././mysqlfs -odebug-dnq ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo >>$at_stderr; echo "DEBUG: Dump and Quit
+
+connect: mysql://(null):(null)@(null):0/(null)
+connect: sock://(null)
+fsck? no
+group: mysqlfs
+pool: 1 initial connections
+pool: 5 idling connections
+logfile: file://mysqlfs.log
+bg? no (debug)
+
+" | $at_diff - $at_stderr || at_failed=:
+$at_diff $at_devnull $at_stdout || at_failed=:
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   2) ;;
+   *) echo "testsuite.at:32: exit code was $at_status, expected 2"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+
+$at_traceoff
+echo "testsuite.at:45: /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././mysqlfs -obackground -ohost=localhost -ouser=mysqlfs -opassword=password -odatabase=mysqlfs -odebug-dnq"
+echo testsuite.at:45 >$at_check_line_file
+( $at_traceon; /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././mysqlfs -obackground -ohost=localhost -ouser=mysqlfs -opassword=password -odatabase=mysqlfs -odebug-dnq ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo >>$at_stderr; echo "DEBUG: Dump and Quit
+
+connect: mysql://mysqlfs:password@localhost:0/mysqlfs
+connect: sock://(null)
+fsck? no
+group: mysqlfs
+pool: 1 initial connections
+pool: 5 idling connections
+logfile: file://mysqlfs.log
+bg? yes (debug)
+
+" | $at_diff - $at_stderr || at_failed=:
+$at_diff $at_devnull $at_stdout || at_failed=:
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   2) ;;
+   *) echo "testsuite.at:45: exit code was $at_status, expected 2"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+
+$at_traceoff
+echo "testsuite.at:58: /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././mysqlfs -obackground --port=1212 --host=localhost --user=mysqlfs --password=password -odatabase=mysqlfs -odebug-dnq"
+echo testsuite.at:58 >$at_check_line_file
+( $at_traceon; /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././mysqlfs -obackground --port=1212 --host=localhost --user=mysqlfs --password=password -odatabase=mysqlfs -odebug-dnq ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo >>$at_stderr; echo "DEBUG: Dump and Quit
+
+connect: mysql://mysqlfs:password@localhost:1212/mysqlfs
+connect: sock://(null)
+fsck? no
+group: mysqlfs
+pool: 1 initial connections
+pool: 5 idling connections
+logfile: file://mysqlfs.log
+bg? yes (debug)
+
+" | $at_diff - $at_stderr || at_failed=:
+$at_diff $at_devnull $at_stdout || at_failed=:
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   2) ;;
+   *) echo "testsuite.at:58: exit code was $at_status, expected 2"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+
+$at_traceoff
+echo "testsuite.at:71: /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././mysqlfs -obackground -h localhost -P 4321 -u mysqlfs --password=password -D mysqlfs -odebug-dnq"
+echo testsuite.at:71 >$at_check_line_file
+( $at_traceon; /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././mysqlfs -obackground -h localhost -P 4321 -u mysqlfs --password=password -D mysqlfs -odebug-dnq ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo >>$at_stderr; echo "DEBUG: Dump and Quit
+
+connect: mysql://mysqlfs:password@localhost:4321/mysqlfs
+connect: sock://(null)
+fsck? no
+group: mysqlfs
+pool: 1 initial connections
+pool: 5 idling connections
+logfile: file://mysqlfs.log
+bg? yes (debug)
+
+" | $at_diff - $at_stderr || at_failed=:
+$at_diff $at_devnull $at_stdout || at_failed=:
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   2) ;;
+   *) echo "testsuite.at:71: exit code was $at_status, expected 2"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+
+$at_traceoff
+echo "testsuite.at:84: /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././mysqlfs -oport=1234 -oinit_conns=4 -omax_idling_conns=6 -opassword=var3 -odatabase=var4 -omycnf_group=var5 -ologfile=var6 -odebug-dnq"
+echo testsuite.at:84 >$at_check_line_file
+( $at_traceon; /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././mysqlfs -oport=1234 -oinit_conns=4 -omax_idling_conns=6 -opassword=var3 -odatabase=var4 -omycnf_group=var5 -ologfile=var6 -odebug-dnq ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo >>$at_stderr; echo "DEBUG: Dump and Quit
+
+connect: mysql://(null):var3@(null):1234/var4
+connect: sock://(null)
+fsck? no
+group: var5
+pool: 1 initial connections
+pool: 5 idling connections
+logfile: file://var6
+bg? no (debug)
+
+" | $at_diff - $at_stderr || at_failed=:
+$at_diff $at_devnull $at_stdout || at_failed=:
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   2) ;;
+   *) echo "testsuite.at:84: exit code was $at_status, expected 2"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+
+$at_traceoff
+echo "testsuite.at:97: /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././mysqlfs -ofsck -oport=1234 -osocket=/dev/sock -ohost=var1 -ouser=var2 -opassword=var3 -odatabase=var4 -odebug-dnq"
+echo testsuite.at:97 >$at_check_line_file
+( $at_traceon; /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././mysqlfs -ofsck -oport=1234 -osocket=/dev/sock -ohost=var1 -ouser=var2 -opassword=var3 -odatabase=var4 -odebug-dnq ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo >>$at_stderr; echo "DEBUG: Dump and Quit
+
+connect: mysql://var2:var3@var1:1234/var4
+connect: sock:///dev/sock
+fsck? yes
+group: mysqlfs
+pool: 1 initial connections
+pool: 5 idling connections
+logfile: file://mysqlfs.log
+bg? no (debug)
+
+" | $at_diff - $at_stderr || at_failed=:
+$at_diff $at_devnull $at_stdout || at_failed=:
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   2) ;;
+   *) echo "testsuite.at:97: exit code was $at_status, expected 2"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+
+
+$at_traceoff
+echo "testsuite.at:101: mkdir -p fs"
+echo testsuite.at:101 >$at_check_line_file
+( $at_traceon; mkdir -p fs ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo stderr:; cat $at_stderr
+echo stdout:; cat $at_stdout
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   0) ;;
+   *) echo "testsuite.at:101: exit code was $at_status, expected 0"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+$at_traceoff
+echo "testsuite.at:102: /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././tests-autotest/timeout -t 10 -- /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././mysqlfs -obackground -ohost=localhost -ouser=mysqlfs -opassword=password -odatabase=mysqlfs ./fs"
+echo testsuite.at:102 >$at_check_line_file
+( $at_traceon; /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././tests-autotest/timeout -t 10 -- /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././mysqlfs -obackground -ohost=localhost -ouser=mysqlfs -opassword=password -odatabase=mysqlfs ./fs ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+$at_diff $at_devnull $at_stderr || at_failed=:
+$at_diff $at_devnull $at_stdout || at_failed=:
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   0) ;;
+   *) echo "testsuite.at:102: exit code was $at_status, expected 0"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+
+$at_traceoff
+echo "testsuite.at:105: find fs"
+echo testsuite.at:105 >$at_check_line_file
+( $at_traceon; find fs ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo stderr:; cat $at_stderr
+echo >>$at_stdout; echo "fs
+" | $at_diff - $at_stdout || at_failed=:
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   0) ;;
+   *) echo "testsuite.at:105: exit code was $at_status, expected 0"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+$at_traceoff
+echo "testsuite.at:106: cp configure fs/ || cp /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././configure fs/"
+echo testsuite.at:106 >$at_check_line_file
+( $at_traceon; cp configure fs/ || cp /home/allanc/mysqlfs/mysqlfs-0.4.0/tests-autotest/.././configure fs/ ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo stderr:; cat $at_stderr
+echo stdout:; cat $at_stdout
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   0) ;;
+   *) echo "testsuite.at:106: exit code was $at_status, expected 0"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+$at_traceoff
+echo "testsuite.at:109: find fs"
+echo testsuite.at:109 >$at_check_line_file
+( $at_traceon; find fs ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo stderr:; cat $at_stderr
+echo >>$at_stdout; echo "fs
+fs/configure
+" | $at_diff - $at_stdout || at_failed=:
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   0) ;;
+   *) echo "testsuite.at:109: exit code was $at_status, expected 0"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+
+$at_traceoff
+echo "testsuite.at:112: cat fs/configure|md5sum"
+echo testsuite.at:112 >$at_check_line_file
+( $at_traceon; cat fs/configure|md5sum ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+echo stderr:; cat $at_stderr
+echo >>$at_stdout; echo "41d44a5c3c9141a31a47443441b422da  -
+" | $at_diff - $at_stdout || at_failed=:
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   0) ;;
+   *) echo "testsuite.at:112: exit code was $at_status, expected 0"
+      at_failed=:;;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+
+$at_traceoff
+echo "testsuite.at:114: killall mysqlfs"
+echo testsuite.at:114 >$at_check_line_file
+( $at_traceon; killall mysqlfs ) >$at_stdout 2>$at_stder1
+at_status=$?
+grep '^ *+' $at_stder1 >&2
+grep -v '^ *+' $at_stder1 >$at_stderr
+at_failed=false
+$at_diff $at_devnull $at_stderr || at_failed=:
+echo stdout:; cat $at_stdout
+case $at_status in
+   77) echo 77 > $at_status_file
+            exit 77;;
+   *);;
+esac
+if $at_failed; then
+
+  echo 1 > $at_status_file
+  exit 1
+fi
+
+$at_traceon
+
+      $at_traceoff
+      $at_times_p && times >$at_times_file
+    ) 5>&1 2>&1 | eval $at_tee_pipe
+    at_status=`cat $at_status_file`
+    ;;
+
+
+  * )
+    echo "$as_me: no such test group: $at_group" >&2
+    continue
+    ;;
+  esac
+
+  # Be sure to come back to the suite directory, in particular
+  # since below we might `rm' the group directory we are in currently.
+  cd $at_suite_dir
+
+  case $at_group in
+    banner-*) ;;
+    *)
+      if test ! -f $at_check_line_file; then
+	sed "s/^ */$as_me: warning: /" <<_ATEOF
+	A failure happened in a test group before any test could be
+	run. This means that test suite is improperly designed.  Please
+	report this failure to <>.
+_ATEOF
+    	echo "$at_setup_line" >$at_check_line_file
+      fi
+      at_group_count=`expr 1 + $at_group_count`
+      $at_verbose $ECHO_N "$at_group. $at_setup_line: $ECHO_C"
+      echo $ECHO_N "$at_group. $at_setup_line: $ECHO_C" >> $at_group_log
+      case $at_xfail:$at_status in
+	yes:0)
+	    at_msg="UNEXPECTED PASS"
+	    at_xpass_list="$at_xpass_list $at_group"
+	    at_errexit=$at_errexit_p
+	    ;;
+	no:0)
+	    at_msg="ok"
+	    at_pass_list="$at_pass_list $at_group"
+	    at_errexit=false
+	    ;;
+	*:77)
+	    at_msg="skipped (`cat $at_check_line_file`)"
+	    at_skip_list="$at_skip_list $at_group"
+	    at_errexit=false
+	    ;;
+	yes:*)
+	    at_msg="expected failure (`cat $at_check_line_file`)"
+	    at_xfail_list="$at_xfail_list $at_group"
+	    at_errexit=false
+	    ;;
+	no:*)
+	    at_msg="FAILED (`cat $at_check_line_file`)"
+	    at_fail_list="$at_fail_list $at_group"
+	    at_errexit=$at_errexit_p
+	    ;;
+      esac
+      echo $at_msg
+      at_log_msg="$at_group. $at_desc ($at_setup_line): $at_msg"
+      case $at_status in
+	0|77)
+	  # $at_times_file is only available if the group succeeded.
+	  # We're not including the group log, so the success message
+	  # is written in the global log separately.  But we also
+	  # write to the group log in case they're using -d.
+	  if test -f $at_times_file; then
+	    at_log_msg="$at_log_msg	(`sed 1d $at_times_file`)"
+	    rm -f $at_times_file
+          fi
+	  echo "$at_log_msg" >> $at_group_log
+	  echo "$at_log_msg" >&5
+
+	  # Cleanup the group directory, unless the user wants the files.
+	  $at_debug_p || rm -rf $at_group_dir
+	  ;;
+	*)
+	  # Upon failure, include the log into the testsuite's global
+	  # log.  The failure message is written in the group log.  It
+	  # is later included in the global log.
+	  echo "$at_log_msg" >> $at_group_log
+
+	  # Upon failure, keep the group directory for autopsy, and
+	  # create the debugging script.
+	  {
+	    echo "#! /bin/sh"
+	    echo 'test "${ZSH_VERSION+set}" = set && alias -g '\''${1+"$@"}'\''='\''"$@"'\'''
+	    echo "cd $at_dir"
+	    echo 'exec ${CONFIG_SHELL-'"$SHELL"'}' "$0" \
+	         '-v -d' "$at_debug_args" "$at_group" '${1+"$@"}'
+	    echo 'exit 1'
+	  } >$at_group_dir/run
+	  chmod +x $at_group_dir/run
+	  $at_errexit && break
+	  ;;
+      esac
+      ;;
+  esac
+done
+
+# Back to the top directory.
+cd $at_dir
+
+# Compute the duration of the suite.
+at_stop_date=`date`
+at_stop_time=`(date +%s) 2>/dev/null`
+echo "$as_me: ending at: $at_stop_date" >&5
+at_duration_s=`(expr $at_stop_time - $at_start_time) 2>/dev/null`
+at_duration_m=`(expr $at_duration_s / 60) 2>/dev/null`
+at_duration_h=`(expr $at_duration_m / 60) 2>/dev/null`
+at_duration_s=`(expr $at_duration_s % 60) 2>/dev/null`
+at_duration_m=`(expr $at_duration_m % 60) 2>/dev/null`
+at_duration="${at_duration_h}h ${at_duration_m}m ${at_duration_s}s"
+if test "$at_duration" != "h m s"; then
+  echo "$as_me: test suite duration: $at_duration" >&5
+fi
+
+# Wrap up the test suite with summary statistics.
+at_skip_count=`set dummy $at_skip_list; shift; echo $#`
+at_fail_count=`set dummy $at_fail_list; shift; echo $#`
+at_xpass_count=`set dummy $at_xpass_list; shift; echo $#`
+at_xfail_count=`set dummy $at_xfail_list; shift; echo $#`
+
+at_run_count=`expr $at_group_count - $at_skip_count`
+at_unexpected_count=`expr $at_xpass_count + $at_fail_count`
+at_total_fail_count=`expr $at_xfail_count + $at_fail_count`
+
+echo
+cat <<\_ASBOX
+## ------------- ##
+## Test results. ##
+## ------------- ##
+_ASBOX
+echo
+{
+  echo
+  cat <<\_ASBOX
+## ------------- ##
+## Test results. ##
+## ------------- ##
+_ASBOX
+  echo
+} >&5
+
+if test $at_run_count = 1; then
+  at_result="1 test"
+  at_were=was
+else
+  at_result="$at_run_count tests"
+  at_were=were
+fi
+if $at_errexit_p && test $at_unexpected_count != 0; then
+  if test $at_xpass_count = 1; then
+    at_result="$at_result $at_were run, one passed"
+  else
+    at_result="$at_result $at_were run, one failed"
+  fi
+  at_result="$at_result unexpectedly and inhibited subsequent tests."
+else
+  # Don't you just love exponential explosion of the number of cases?
+  case $at_xpass_count:$at_fail_count:$at_xfail_count in
+    # So far, so good.
+    0:0:0) at_result="$at_result $at_were successful." ;;
+    0:0:*) at_result="$at_result behaved as expected." ;;
+
+    # Some unexpected failures
+    0:*:0) at_result="$at_result $at_were run,
+$at_fail_count failed unexpectedly." ;;
+
+    # Some failures, both expected and unexpected
+    0:*:1) at_result="$at_result $at_were run,
+$at_total_fail_count failed ($at_xfail_count expected failure)." ;;
+    0:*:*) at_result="$at_result $at_were run,
+$at_total_fail_count failed ($at_xfail_count expected failures)." ;;
+
+    # No unexpected failures, but some xpasses
+    *:0:*) at_result="$at_result $at_were run,
+$at_xpass_count passed unexpectedly." ;;
+
+    # No expected failures, but failures and xpasses
+    *:1:0) at_result="$at_result $at_were run,
+$at_unexpected_count did not behave as expected ($at_fail_count unexpected failure)." ;;
+    *:*:0) at_result="$at_result $at_were run,
+$at_unexpected_count did not behave as expected ($at_fail_count unexpected failures)." ;;
+
+    # All of them.
+    *:*:1) at_result="$at_result $at_were run,
+$at_xpass_count passed unexpectedly,
+$at_total_fail_count failed ($at_xfail_count expected failure)." ;;
+    *:*:*) at_result="$at_result $at_were run,
+$at_xpass_count passed unexpectedly,
+$at_total_fail_count failed ($at_xfail_count expected failures)." ;;
+  esac
+
+  if test $at_skip_count = 0 && test $at_run_count -gt 1; then
+    at_result="All $at_result"
+  fi
+fi
+
+# Now put skips in the mix.
+case $at_skip_count in
+  0) ;;
+  1) at_result="$at_result
+1 test was skipped." ;;
+  *) at_result="$at_result
+$at_skip_count tests were skipped." ;;
+esac
+
+if test $at_unexpected_count = 0; then
+  echo "$at_result"
+  echo "$at_result" >&5
+else
+  echo "ERROR: $at_result" >&2
+  echo "ERROR: $at_result" >&5
+  {
+    echo
+    cat <<\_ASBOX
+## ------------------------ ##
+## Summary of the failures. ##
+## ------------------------ ##
+_ASBOX
+
+    # Summary of failed and skipped tests.
+    if test $at_fail_count != 0; then
+      echo "Failed tests:"
+      $SHELL $0 $at_fail_list --list
+      echo
+    fi
+    if test $at_skip_count != 0; then
+      echo "Skipped tests:"
+      $SHELL $0 $at_skip_list --list
+      echo
+    fi
+    if test $at_xpass_count != 0; then
+      echo "Unexpected passes:"
+      $SHELL $0 $at_xpass_list --list
+      echo
+    fi
+    if test $at_fail_count != 0; then
+      cat <<\_ASBOX
+## ---------------------- ##
+## Detailed failed tests. ##
+## ---------------------- ##
+_ASBOX
+      echo
+      for at_group in $at_fail_list
+      do
+        # Normalize the test group number.
+        at_group_normalized=`expr "00000$at_group" : ".*\($at_format\)"`
+        # Create a fresh directory for the next test group, and enter.
+        at_group_dir=$at_suite_dir/$at_group_normalized
+        at_group_log=$at_group_dir/$as_me.log
+        cat $at_group_log
+        echo
+      done
+      echo
+    fi
+    if test -n "$at_top_srcdir"; then
+      sed 'h;s/./-/g;s/^.../## /;s/...$/ ##/;p;x;p;x' <<_ASBOX
+## $at_top_builddir/config.log ##
+_ASBOX
+      sed 's/^/| /' $at_top_builddir/config.log
+      echo
+    fi
+  } >&5
+
+  sed 'h;s/./-/g;s/^.../## /;s/...$/ ##/;p;x;p;x' <<_ASBOX
+## $as_me.log was created. ##
+_ASBOX
+
+  echo
+  echo "Please send \`$as_me.log' and all information you think might help:"
+  echo
+  echo "   To: <>"
+  echo "   Subject: [mysqlfs 0.4.0] $as_me:$at_fail_list${at_fail_list:+ failed${at_xpass_list:+,}}$at_xpass_list${at_xpass_list:+ passed unexpectedly}"
+  echo
+  if test $at_debug_p = false; then
+    echo
+    echo 'You may investigate any problem if you feel able to do so, in which'
+    echo 'case the test suite provides a good starting point.'
+    echo
+  fi
+    exit 1
+fi
+
+exit 0
+
+

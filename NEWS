@@ -1,0 +1,45 @@
+What is new in 0.4.0
+--------------------
+
+* Reworked data storage. Instead of one huge record for each
+  file we now store the data in 4kB blocks. That greatly 
+  improves performance, storage efficiency and overcomes
+  problems when storing files larger than 1MB. As a side
+  effect it allows storing "sparse" files.
+  
+What is new in 0.3.1
+--------------------
+
+* Added missing schema.sql to the distribution tarball.
+
+What is new in 0.3
+------------------
+
+* Complete set of essential operations is now available.
+
+* Fixed most (all?) bugs from previous implementations, 
+  especially for write().
+
+* Reworked database schema - now with separate tables
+  for directory tree, for inodes and for data.
+
+* Rewritten pooling to avoid "Aieee, we're out of connections!" 
+  errors.
+
+* Requires MySQL 5.0.x or higher.
+
+What is new in 0.2
+------------------
+
+* Improvement of performance by mysql connection pooling.
+
+* Update atime, mtime.
+
+* Implement chmod().
+
+* Some error processing.
+
+What is new in 0.1
+------------------
+
+* Initial release.

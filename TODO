@@ -1,0 +1,14 @@
+* Implement more robust connection pool
+	- avoid -EMFILE when there are no more free connections
+
+* Implement some security 
+	- currently we allow all operations regardless on the privileges.
+
+* Implement path->inode cache and inode->stat cache
+	- getattr will greatly benefit from this
+
+* Implement file buffering
+	- running query after every write() is insane
+
+* Implement support for xattr and acl
+	- FUSE has the methods at least for xattr
