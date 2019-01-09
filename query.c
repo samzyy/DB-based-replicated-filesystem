@@ -88,7 +88,7 @@ int query_getattr(MYSQL *mysql, const char *path, struct stat *stbuf)
       return ret;
 
     snprintf(sql, SQL_MAX,
-             "SELECT inode, mode, uid, gid, atime, mtime "
+             "SELECT inode, mode, uid, gid, ctime, atime, mtime "
              "FROM inodes WHERE inode=%ld",
              inode);
 
@@ -121,8 +121,9 @@ int query_getattr(MYSQL *mysql, const char *path, struct stat *stbuf)
     stbuf->st_mode = atoi(row[1]);
     stbuf->st_uid = atol(row[2]);
     stbuf->st_gid = atol(row[3]);
-    stbuf->st_atime = atol(row[4]);
-    stbuf->st_mtime = atol(row[5]);
+    stbuf->st_ctime = atol(row[4]);
+    stbuf->st_atime = atol(row[5]);
+    stbuf->st_mtime = atol(row[6]);
     stbuf->st_nlink = nlinks;
 
     mysql_free_result(result);
@@ -409,7 +410,9 @@ long query_mknod(MYSQL *mysql, const char *path, mode_t mode, dev_t rdev,
         name = strrchr(path, '/');
         if (!name || *++name == '\0') 
             return -ENOENT;
-            
+        if (strlen(name) > 255)
+            return -ENAMETOOLONG;
+
         mysql_real_escape_string(mysql, esc_name, name, strlen(name));
         snprintf(sql, SQL_MAX,
                  "INSERT INTO tree (name, parent) VALUES ('%s', %ld)",
@@ -524,7 +527,7 @@ int query_chmod(MYSQL *mysql, long inode, mode_t mode)
     char sql[SQL_MAX];
 
     snprintf(sql, SQL_MAX,
-             "UPDATE inodes SET mode=%d WHERE inode=%ld",
+             "UPDATE inodes SET ctime=UNIX_TIMESTAMP(NOW()), mode=%d WHERE inode=%ld",
              mode, inode);
 
     log_printf(LOG_D_SQL, "sql=%s\n", sql);
