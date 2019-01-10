@@ -253,6 +253,8 @@ long query_inode(MYSQL *mysql, const char *path)
 {
     long inode, ret;
     
+    if (strlen(path) > PATH_MAX)
+        return -ENAMETOOLONG;
     ret = query_inode_full(mysql, path, NULL, 0, &inode, NULL, NULL);
     if (ret < 0)
       return ret;
@@ -333,6 +335,10 @@ int query_mkdirentry(MYSQL *mysql, long inode, const char *name, long parent)
     char sql[SQL_MAX];
     char esc_name[PATH_MAX * 2];
 
+    /* 
+     * Should really update ctime in inode --- but if we did that we could 
+     * add an nlinks count in the inode relation and get rid of the funcky join
+     */
     mysql_real_escape_string(mysql, esc_name, name, strlen(name));
     snprintf(sql, SQL_MAX,
              "INSERT INTO tree (name, parent, inode) VALUES ('%s', %ld, %ld)",
@@ -564,7 +570,7 @@ int query_chown(MYSQL *mysql, long inode, uid_t uid, gid_t gid)
     char sql[SQL_MAX];
     size_t index;
 
-    index = snprintf(sql, SQL_MAX, "UPDATE inodes SET ");
+    index = snprintf(sql, SQL_MAX, "UPDATE inodes SET ctime=UNIX_TIMESTAMP(NOW()),");
     if (uid != (uid_t)-1)
     	index += snprintf(sql + index, SQL_MAX - index, 
 			  "uid=%d ", uid);
