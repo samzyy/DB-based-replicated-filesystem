@@ -11,7 +11,7 @@ AC_PREFIX_PROGRAM([id])
 
 AC_ENABLE_SHARED(no)
 
-AC_DEFINE(FUSE_USE_VERSION, 25, [Fuse API Version])
+AC_DEFINE(FUSE_USE_VERSION, 31, [Fuse API Version])
 AC_DEFINE(MYSQL_MIN_VERSION, 50000, [Minimal supported MySQL version])
 
 AC_DEFINE(_FILE_OFFSET_BITS,64,[Use 64 bits file offsets])
@@ -47,22 +47,12 @@ esac
 
 AC_SUBST(AUTOM4TE, autom4te)
 
-for i in /usr/local/fuse /usr/local /usr; do
-  if test -r $i/include/fuse.h; then
-    FUSE_DIR=$i
-    FUSE_LIB_DIR=$i/lib
-    FUSE_INC_DIR=$i/include
-    break
-  fi
-done
-if test x${FUSE_LIB_DIR} != x
-then
-  FUSE_LDFLAGS="-L${FUSE_LIB_DIR}"
-  FUSE_CFLAGS="-I${FUSE_INC_DIR}"
-  LDFLAGS="$LDFLAGS $FUSE_LDFLAGS"
-  CFLAGS="$CFLAGS $FUSE_CFLAGS"
-  CPPFLAGS="$CPPFLAGS $FUSE_CFLAGS"
-fi
+FUSE_LDFLAGS=`pkg-config --libs fuse3`
+FUSE_CFLAGS=`pkg-config --cflags fuse3`
+
+LDFLAGS="$LDFLAGS $FUSE_LDFLAGS"
+CFLAGS="$CFLAGS $FUSE_CFLAGS"
+CPPFLAGS="$CPPFLAGS $FUSE_CFLAGS"
 
 MYSQL_CONFIG=$(which mysql_config)
 if test "$MYSQL_CONFIG"; then
@@ -95,14 +85,14 @@ CPPFLAGS="$CPPFLAGS $MYSQL_CFLAGS"
 dnl Checks for libraries.
 AC_SEARCH_LIBS(mysql_init, mysqlclient,, AC_MSG_ERROR([Please install mysqlclient library first.]))
 AC_SEARCH_LIBS(pthread_create, pthread,, AC_MSG_ERROR([Please install pthreads library first.]))
-AC_SEARCH_LIBS(fuse_main, fuse,, AC_MSG_ERROR([Please install fuse library first.]))
+AC_SEARCH_LIBS(fuse_main_real, fuse3,, AC_MSG_ERROR([Please install fuse library first.]))
 
 dnl Checks for header files. (mac -- and BSD? -- have statfs in mount.h)
 AC_CHECK_HEADERS(stdio.h sys/param.h sys/mount.h)
 
-AC_CHECK_HEADERS(fuse/fuse.h,, AC_MSG_ERROR([Please install FUSE development package]))
+AC_CHECK_HEADERS(fuse3/fuse.h,, AC_MSG_ERROR([Please install FUSE development package]))
 AC_MSG_CHECKING(FUSE API version)
-AC_EGREP_CPP(yes, [#include <fuse/fuse.h>
+AC_EGREP_CPP(yes, [#include <fuse3/fuse.h>
 #if FUSE_VERSION >= FUSE_USE_VERSION
 yes
 #endif], [AC_MSG_RESULT(ok)], [AC_MSG_RESULT(too old)

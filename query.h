@@ -34,7 +34,7 @@ int query_rmdirentry(MYSQL *mysql, const char *name, long parent);
 long query_mknod(MYSQL *mysql, const char *path, mode_t mode, dev_t rdev,
                 long parent, int alloc_data);
 long query_mkdir(MYSQL *mysql, const char* path, mode_t mode, long parent);
-int query_readdir(MYSQL *mysql, long inode, void *buf, fuse_fill_dir_t filler);
+int query_readdir(MYSQL *mysql, long inode, void *buf, fuse_fill_dir_t filler, int flag);
 int query_read(MYSQL *mysql, long inode, const char* buf, size_t size, off_t offset);
 int query_write(MYSQL *mysql, long inode, const char* buf, size_t size, off_t offset);
 int query_truncate(MYSQL *mysql, const char *path, off_t length);
@@ -46,7 +46,7 @@ int query_rename(MYSQL *mysql, const char* from, const char* to);
 
 int query_chmod(MYSQL *mysql, long inode, mode_t mode);
 int query_chown(MYSQL *mysql, long inode, uid_t uid, gid_t gid);
-int query_utime(MYSQL *mysql, long inode, struct utimbuf *time);
+int query_utime(MYSQL *mysql, long inode, const struct timespec tv[2]);
 
 ssize_t query_size(MYSQL *mysql, long inode);
 ssize_t query_size_block(MYSQL *mysql, long inode, unsigned long seq);

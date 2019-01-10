@@ -18,7 +18,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <libgen.h>
-#include <fuse/fuse.h>
+#include <fuse.h>
 #ifdef HAVE_MYSQL_MYSQL_H
 #include <mysql/mysql.h>
 #endif
@@ -38,7 +38,7 @@
 #include "pool.h"
 #include "log.h"
 
-static int mysqlfs_getattr(const char *path, struct stat *stbuf)
+static int mysqlfs_getattr(const char *path, struct stat *stbuf, struct fuse_file_info *f)
 {
     int ret;
     MYSQL *dbconn;
@@ -75,7 +75,8 @@ static int mysqlfs_getattr(const char *path, struct stat *stbuf)
 }
 
 static int mysqlfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-                           off_t offset, struct fuse_file_info *fi)
+                           off_t offset, struct fuse_file_info *fi,
+                           enum fuse_readdir_flags flags)
 {
     (void) offset;
     (void) fi;
@@ -88,20 +89,27 @@ static int mysqlfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     if ((dbconn = pool_get()) == NULL)
       return -EMFILE;
 
-    inode = query_inode(dbconn, path);
-    if(inode < 0){
-        log_printf(LOG_ERROR, "Error: query_inode()\n");
-        pool_put(dbconn);
-        return inode;
+    if (fi && fi->fh)
+        inode = fi->fh;
+    else
+    {
+        inode = query_inode(dbconn, path);
+        if(inode < 0){
+            log_printf(LOG_ERROR, "Error: query_inode()\n");
+            pool_put(dbconn);
+            return inode;
+        }
     }
 
+    log_printf(LOG_D_CALL, "mysqlfs_readir: inode %ld\n", inode);
     
-    filler(buf, ".", NULL, 0);
-    filler(buf, "..", NULL, 0);
+    filler(buf, ".", NULL, 0, 0);
+    filler(buf, "..", NULL, 0, 0);
 
-    ret = query_readdir(dbconn, inode, buf, filler);
+    ret = query_readdir(dbconn, inode, buf, filler, flags);
     pool_put(dbconn);
 
+    log_printf(LOG_D_CALL, "mysqlfs_readdir(), return %d\n", ret);
     return ret;
 }
 
@@ -235,7 +243,7 @@ err_out:
     return ret;
 }
 
-static int mysqlfs_chmod(const char* path, mode_t mode)
+static int mysqlfs_chmod(const char* path, mode_t mode,struct fuse_file_info *fi)
 {
     int ret;
     long inode;
@@ -264,7 +272,7 @@ static int mysqlfs_chmod(const char* path, mode_t mode)
     return ret;
 }
 
-static int mysqlfs_chown(const char *path, uid_t uid, gid_t gid)
+static int mysqlfs_chown(const char *path, uid_t uid, gid_t gid, struct fuse_file_info *fi)
 {
     int ret;
     long inode;
@@ -293,7 +301,8 @@ static int mysqlfs_chown(const char *path, uid_t uid, gid_t gid)
     return ret;
 }
 
-static int mysqlfs_truncate(const char* path, off_t length)
+static int mysqlfs_truncate(const char* path, off_t length, 
+                            struct fuse_file_info *fi)
 {
     int ret;
     MYSQL *dbconn;
@@ -315,7 +324,7 @@ static int mysqlfs_truncate(const char* path, off_t length)
     return 0;
 }
 
-static int mysqlfs_utime(const char *path, struct utimbuf *time)
+static int mysqlfs_utime(const char *path, const struct timespec tv[2], struct fuse_file_info *fi)
 {
     int ret;
     long inode;
@@ -326,13 +335,18 @@ static int mysqlfs_utime(const char *path, struct utimbuf *time)
     if ((dbconn = pool_get()) == NULL)
       return -EMFILE;
 
-    inode = query_inode(dbconn, path);
-    if (inode < 0) {
-        pool_put(dbconn);
-        return inode;
+    if (fi && fi->fh)
+        inode = fi->fh;
+    else
+    {
+        inode = query_inode(dbconn, path);
+        if (inode < 0) {
+            pool_put(dbconn);
+            return inode;
+        }
     }
 
-    ret = query_utime(dbconn, inode, time);
+    ret = query_utime(dbconn, inode, tv);
     if (ret < 0) {
         log_printf(LOG_ERROR, "Error: query_utime()\n");
         pool_put(dbconn);
@@ -536,19 +550,22 @@ static int mysqlfs_readlink(const char *path, char *buf, size_t size)
     return ret;
 }
 
-static int mysqlfs_rename(const char *from, const char *to)
+static int mysqlfs_rename(const char *from, const char *to, unsigned int flags)
 {
     int ret;
     MYSQL *dbconn;
 
     log_printf(LOG_D_CALL, "%s(%s -> %s)\n", __func__, from, to);
 
-    // FIXME: This should be wrapped in a transaction!!!
-    mysqlfs_unlink(to);
+    /* We don't handle the EXCHANGE or NOREPLACE flags */
+    if (flags)
+        return -EINVAL;
 
     if ((dbconn = pool_get()) == NULL)
       return -EMFILE;
 
+    // FIXME: This should be wrapped in a transaction!!!
+    mysqlfs_unlink(to);
     ret = query_rename(dbconn, from, to);
 
     pool_put(dbconn);
@@ -567,7 +584,7 @@ static struct fuse_operations mysqlfs_oper = {
     .chmod	= mysqlfs_chmod,
     .chown	= mysqlfs_chown,
     .truncate	= mysqlfs_truncate,
-    .utime	= mysqlfs_utime,
+    .utimens	= mysqlfs_utime,
     .open	= mysqlfs_open,
     .read	= mysqlfs_read,
     .write	= mysqlfs_write,
@@ -644,6 +661,7 @@ static struct fuse_opt mysqlfs_opts[] =
     FUSE_OPT_KEY("-v",		KEY_VERSION),
     FUSE_OPT_KEY("--version",	KEY_VERSION),
     FUSE_OPT_KEY("--help",	KEY_HELP),
+    FUSE_OPT_KEY("allow_other", FUSE_OPT_KEY_OPT),
     FUSE_OPT_END
   };
 
@@ -711,6 +729,8 @@ int main(int argc, char *argv[])
     log_file = stderr;
 
     fuse_opt_parse(&args, &opt, mysqlfs_opts, mysqlfs_opt_proc);
+    fuse_opt_add_arg(&args, "-oallow_other");
+    fuse_opt_add_arg(&args, "-odefault_permissions");
 
     if (pool_init(&opt) < 0) {
         log_printf(LOG_ERROR, "Error: pool_init() failed\n");
@@ -733,7 +753,7 @@ int main(int argc, char *argv[])
 
     log_file = log_init(opt.logfile, 1);
 
-    fuse_main(args.argc, args.argv, &mysqlfs_oper);
+    fuse_main(args.argc, args.argv, &mysqlfs_oper, NULL);
     fuse_opt_free_args(&args);
 
     pool_cleanup();

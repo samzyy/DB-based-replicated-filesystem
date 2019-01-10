@@ -19,7 +19,7 @@
 #include <fcntl.h>
 #include <time.h>
 #include <libgen.h>
-#include <fuse/fuse.h>
+#include <fuse.h>
 #ifdef HAVE_MYSQL_MYSQL_H
 #include <mysql/mysql.h>
 #endif
@@ -114,6 +114,7 @@ int query_getattr(MYSQL *mysql, const char *path, struct stat *stbuf)
     }
     row = mysql_fetch_row(result);
     if(!row){
+        log_printf(LOG_ERROR, "ERROR: mysql_fetch_row()\n");
         return -EIO;
     }
 
@@ -156,16 +157,16 @@ int query_inode_full(MYSQL *mysql, const char *path, char *name, size_t name_len
 		      long *inode, long *parent, long *nlinks)
 {
     long ret;
-    char sql[SQL_MAX];
+    char sql[SQL_MAX*4];
     MYSQL_RES* result;
     MYSQL_ROW row;
 
     int depth = 0;
     char *pathptr = strdup(path), *pathptr_saved = pathptr;
     char *nameptr, *saveptr = NULL;
-    char sql_from[SQL_MAX], sql_where[SQL_MAX];
+    char sql_from[SQL_MAX/3], sql_where[SQL_MAX/3];
     char *sql_from_end = sql_from, *sql_where_end = sql_where;
-    char esc_name[PATH_MAX * 2];
+    char esc_name[PATH_MAX];
 
     // TODO: Handle too long or too nested paths that don't fit in SQL_MAX!!!
     sql_from_end += snprintf(sql_from_end, SQL_MAX, "tree AS t0");
@@ -239,7 +240,7 @@ int query_inode_full(MYSQL *mysql, const char *path, char *name, size_t name_len
  * a nestable return value.
  *
  * @return ID of inode
- * @return < 0 result of query_inode_full() if that ufnction reports a failure
+ * @return < 0 result of query_inode_full() if that function reports a failure
  * @param mysql handle to connection to the database
  * @param path (full) pathname of inode to find
  */
@@ -467,9 +468,6 @@ long query_mkdir(MYSQL *mysql, const char *path, mode_t mode, long parent)
  * The set of results is not ordered, so results would be in the "natural order"
  * of the database.
  *
- * for the kernel's implementation of a chmod() call in an inode on the FUSE
- * filesystem.
- *
  * @see http://linux.die.net/man/2/readdir
  *
  * @return 0 on success; -EIO on failure (non-zero return from mysql_query() function)
@@ -478,7 +476,7 @@ long query_mkdir(MYSQL *mysql, const char *path, mode_t mode, long parent)
  * @param buf buffer to pass to filler function
  * @param filler fuse_fill_dir_t function-pointer used to process each directory entry
  */
-int query_readdir(MYSQL *mysql, long inode, void *buf, fuse_fill_dir_t filler)
+int query_readdir(MYSQL *mysql, long inode, void *buf, fuse_fill_dir_t filler, int flag)
 {
     int ret;
     char sql[SQL_MAX];
@@ -501,12 +499,12 @@ int query_readdir(MYSQL *mysql, long inode, void *buf, fuse_fill_dir_t filler)
     }
 
     while((row = mysql_fetch_row(result)) != NULL){
-        filler(buf, (char*)basename(row[0]), NULL, 0);
+        filler(buf, (char*)basename(row[0]), NULL, 0, 0);
     }
 
     mysql_free_result(result);
 
-    return ret;
+    return 0;
 }
 
 /**
@@ -597,7 +595,7 @@ int query_chown(MYSQL *mysql, long inode, uid_t uid, gid_t gid)
  * @param inode inode to update the atime, mtime
  * @param time utimbuf with new actime, modtime, to set into access and modification times
  */
-int query_utime(MYSQL *mysql, long inode, struct utimbuf *time)
+int query_utime(MYSQL *mysql, long inode, const struct timespec tv[2])
 {
     int ret;
     char sql[SQL_MAX];
@@ -606,7 +604,7 @@ int query_utime(MYSQL *mysql, long inode, struct utimbuf *time)
              "UPDATE inodes "
              "SET atime=%ld, mtime=%ld "
              "WHERE inode=%lu",
-             time->actime, time->modtime, inode);
+             tv[0].tv_sec, tv[1].tv_sec, inode);
 
     log_printf(LOG_D_SQL, "sql=%s\n", sql);
 
@@ -965,17 +963,19 @@ ssize_t query_size(MYSQL *mysql, long inode)
 
     if(mysql_num_rows(result) != 1 || mysql_num_fields(result) != 1){
         mysql_free_result(result);
+        log_printf(LOG_ERROR, "ERROR: non-unique number of roes for %d\n", inode);
         return -EIO;
     }
 
     row = mysql_fetch_row(result);
     if(!row){
+        log_printf(LOG_ERROR, "ERROR: row-fetch failed for %d\n", inode);
         return -EIO;
     }
 
-    if(row[0]){
+    if (row[0]) {
         ret = atoll(row[0]);
-    }else{
+    } else {
         ret = 0;
     }
     mysql_free_result(result);
@@ -1025,6 +1025,7 @@ ssize_t query_size_block(MYSQL *mysql, long inode, unsigned long seq)
 
     row = mysql_fetch_row(result);
     if(!row){
+        log_printf(LOG_ERROR, "Could not fetch row: query_size_block\n");
         return -EIO;
     }
 
