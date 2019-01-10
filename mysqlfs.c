@@ -119,7 +119,7 @@ static int mysqlfs_mknod(const char *path, mode_t mode, dev_t rdev)
     int ret;
     MYSQL *dbconn;
     long parent_inode;
-    char dir_path[PATH_MAX];
+    char dir_path[PATH_MAX + 1];
 
     log_printf(LOG_D_CALL, "mysqlfs_mknod(\"%s\", %o): %s\n", path, mode,
 	       S_ISREG(mode) ? "file" :
@@ -127,7 +127,7 @@ static int mysqlfs_mknod(const char *path, mode_t mode, dev_t rdev)
 	       S_ISLNK(mode) ? "symlink" :
 	       "other");
 
-    if(!(strlen(path) < PATH_MAX)){
+    if(!(strlen(path) <= PATH_MAX)){
         log_printf(LOG_ERROR, "Error: Filename too long\n");
         return -ENAMETOOLONG;
     }
@@ -157,11 +157,11 @@ static int mysqlfs_mkdir(const char *path, mode_t mode){
     int ret;
     MYSQL *dbconn;
     long inode;
-    char dir_path[PATH_MAX];
+    char dir_path[PATH_MAX + 1];
 
     log_printf(LOG_D_CALL, "mysqlfs_mkdir(\"%s\", 0%o)\n", path, mode);
     
-    if(!(strlen(path) < PATH_MAX)){
+    if(!(strlen(path) <= PATH_MAX)){
         log_printf(LOG_ERROR, "Error: Filename too long\n");
         return -ENAMETOOLONG;
     }
