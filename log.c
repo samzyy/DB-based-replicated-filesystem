@@ -30,10 +30,10 @@ int log_debug_mask = 0;
 
 static char *currentTS(void)
 {
-	static char buf[BUFSIZE];
+	static char buf[32];
 	time_t curtime;
 
-	bzero(buf, BUFSIZE);
+	bzero(buf, sizeof buf);
 	curtime = time(NULL);
 	strftime(buf, BUFSIZE, "%Y-%m-%d %H:%M:%S", localtime(&curtime));
 
