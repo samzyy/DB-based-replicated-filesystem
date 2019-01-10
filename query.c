@@ -176,6 +176,11 @@ int query_inode_full(MYSQL *mysql, const char *path, char *name, size_t name_len
 	  pathptr = NULL;
 	}
 
+        if (strlen(nameptr) > 255) {
+            free(pathptr_saved);
+            return -ENAMETOOLONG;
+        }
+
         mysql_real_escape_string(mysql, esc_name, nameptr, strlen(nameptr));
 	sql_from_end += snprintf(sql_from_end, SQL_MAX, " LEFT JOIN tree AS t%d ON t%d.inode = t%d.parent",
 		 depth, depth-1, depth);
