@@ -30,7 +30,7 @@ int query_inode_full(MYSQL *mysql, const char* path, char *name, size_t name_len
 		     long *inode, long *parent, long *nlinks);
 int query_getattr(MYSQL *mysql, const char *path, struct stat *stbuf);
 int query_mkdirentry(MYSQL *mysql, long inode, const char *name, long parent);
-int query_rmdirentry(MYSQL *mysql, const char *name, long parent);
+int query_rmdirentry(MYSQL *mysql, const char *name, long inode, long parent);
 long query_mknod(MYSQL *mysql, const char *path, mode_t mode, dev_t rdev,
                 long parent, int alloc_data);
 long query_mkdir(MYSQL *mysql, const char* path, mode_t mode, long parent);

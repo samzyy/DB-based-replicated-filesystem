@@ -352,7 +352,10 @@ int query_mkdirentry(MYSQL *mysql, long inode, const char *name, long parent)
 }
 
 /**
- * The opposite of query_mkdirentry(), this function deletes a directory from the tree with a parent that matches the inode given.
+ * The opposite of query_mkdirentry(), this function deletes a link
+ * from the tree with a parent that matches the inode given.
+ * It will refuse to delete an entry if it has children (i.e. is  a 
+ * non-empty directory)
  *
  * @return 0 if successful
  * @return -EIO if the result of mysql_query() is non-zero
@@ -360,12 +363,31 @@ int query_mkdirentry(MYSQL *mysql, long inode, const char *name, long parent)
  * @param name name (relative)  of directory to delete
  * @param parent inode of directory holding the directory
  */
-int query_rmdirentry(MYSQL *mysql, const char *name, long parent)
+int query_rmdirentry(MYSQL *mysql, const char *name, long inode, long parent)
 {
     int ret;
+    MYSQL_RES *result;
     char sql[SQL_MAX];
     char esc_name[PATH_MAX * 2];
 
+    snprintf(sql, SQL_MAX, "select inode from tree where parent = %ld\n", inode);
+    ret = mysql_query(mysql, sql);
+    if(ret) {
+        log_printf(LOG_ERROR, "ERROR: mysql_query()\n");
+        log_printf(LOG_ERROR, "mysql_error: %s\n", mysql_error(mysql));
+        return -EIO;
+    }
+
+    result = mysql_store_result(mysql);
+    if(!result){
+        log_printf(LOG_ERROR, "ERROR: mysql_store_result()\n");
+        log_printf(LOG_ERROR, "mysql_error: %s\n", mysql_error(mysql));
+        return -EIO;
+    }
+
+    if (mysql_num_rows(result) != 0)
+        return -ENOTEMPTY;
+    
     mysql_real_escape_string(mysql, esc_name, name, strlen(name));
     snprintf(sql, SQL_MAX,
              "DELETE FROM tree WHERE name='%s' AND parent=%ld",

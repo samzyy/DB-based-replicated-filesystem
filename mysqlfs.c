@@ -196,7 +196,7 @@ static int mysqlfs_unlink(const char *path)
 	goto err_out;
     }
 
-    ret = query_rmdirentry(dbconn, name, parent);
+    ret = query_rmdirentry(dbconn, name, inode, parent);
     if (ret < 0) {
         log_printf(LOG_ERROR, "Error: query_rmdirentry()\n");
 	goto err_out;
