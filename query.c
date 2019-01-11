@@ -300,7 +300,7 @@ int query_truncate(MYSQL *mysql, long inode, off_t length)
     if ((ret = mysql_query(mysql, sql))) goto err_out;
 
     snprintf(sql, SQL_MAX,
-             "UPDATE inodes SET size=%lld WHERE inode=%ld",
+             "UPDATE inodes SET size=%lld, mtime=UNIX_TIMESTAMP(NOW()), ctime=UNIX_TIMESTAMP(NOW()) WHERE inode=%ld",
              (long long)length, inode);
     log_printf(LOG_D_SQL, "sql=%s\n", sql);
     if ((ret = mysql_query(mysql, sql))) goto err_out;
