@@ -274,7 +274,7 @@ static int mysqlfs_chown(const char *path, uid_t uid, gid_t gid, struct fuse_fil
     if ((dbconn = pool_get()) == NULL)
       return -EMFILE;
 
-    if (fi->fh)
+    if (fi && fi->fh)
         inode = fi->fh;
     else {
         inode = query_inode(dbconn, path);
