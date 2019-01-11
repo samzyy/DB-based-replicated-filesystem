@@ -52,23 +52,6 @@ static int mysqlfs_getattr(const char *path, struct stat *stbuf, struct fuse_fil
       return -EMFILE;
 
     ret = query_getattr(dbconn, path, stbuf);
-
-    if(ret){
-        if (ret != -ENOENT)
-            log_printf(LOG_ERROR, "Error: query_getattr()\n");
-        pool_put(dbconn);
-        return ret;
-    }else{
-        long inode = query_inode(dbconn, path);
-        if(inode < 0){
-            log_printf(LOG_ERROR, "Error: query_inode()\n");
-            pool_put(dbconn);
-            return inode;
-        }
-
-        stbuf->st_size = query_size(dbconn, inode);
-    }
-
     pool_put(dbconn);
 
     return ret;
@@ -83,6 +66,7 @@ static int mysqlfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     int ret;
     MYSQL *dbconn;
     long inode;
+    struct stat st;
 
     log_printf(LOG_D_CALL, "mysqlfs_readdir(\"%s\")\n", path);
 
@@ -103,8 +87,11 @@ static int mysqlfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 
     log_printf(LOG_D_CALL, "mysqlfs_readir: inode %ld\n", inode);
     
-    filler(buf, ".", NULL, 0, 0);
-    filler(buf, "..", NULL, 0, 0);
+    memset(&st, 0, sizeof st);
+    st.st_ino = 1;
+    st.st_mode = 0777;
+    filler(buf, ".", &st, 0, 0);
+    filler(buf, "..", &st, 0, 0);
 
     ret = query_readdir(dbconn, inode, buf, filler, flags);
     pool_put(dbconn);
@@ -254,10 +241,14 @@ static int mysqlfs_chmod(const char* path, mode_t mode,struct fuse_file_info *fi
     if ((dbconn = pool_get()) == NULL)
       return -EMFILE;
 
-    inode = query_inode(dbconn, path);
-    if (inode < 0) {
-        pool_put(dbconn);
-        return inode;
+    if (fi && fi->fh)
+        inode = fi->fh;
+    else {
+        inode = query_inode(dbconn, path);
+        if (inode < 0) {
+            pool_put(dbconn);
+            return inode;
+        }
     }
 
     ret = query_chmod(dbconn, inode, mode);
@@ -283,10 +274,14 @@ static int mysqlfs_chown(const char *path, uid_t uid, gid_t gid, struct fuse_fil
     if ((dbconn = pool_get()) == NULL)
       return -EMFILE;
 
-    inode = query_inode(dbconn, path);
-    if (inode < 0) {
-        pool_put(dbconn);
-        return inode;
+    if (fi->fh)
+        inode = fi->fh;
+    else {
+        inode = query_inode(dbconn, path);
+        if (inode < 0) {
+            pool_put(dbconn);
+            return inode;
+        }
     }
 
     ret = query_chown(dbconn, inode, uid, gid);
@@ -306,13 +301,24 @@ static int mysqlfs_truncate(const char* path, off_t length,
 {
     int ret;
     MYSQL *dbconn;
+    long inode;
 
     log_printf(LOG_D_CALL, "mysql_truncate(\"%s\"): len=%lld\n", path, length);
 
     if ((dbconn = pool_get()) == NULL)
       return -EMFILE;
 
-    ret = query_truncate(dbconn, path, length);
+    if (fi && fi->fh)
+        inode = fi->fh;
+    else {
+        inode = query_inode(dbconn, path);
+        if (inode < 0) {
+            pool_put(dbconn);
+            return inode;
+        }
+    }
+
+    ret = query_truncate(dbconn, inode, length);
     if (ret < 0) {
         log_printf(LOG_ERROR, "Error: query_length()\n");
         pool_put(dbconn);
@@ -573,8 +579,35 @@ static int mysqlfs_rename(const char *from, const char *to, unsigned int flags)
     return ret;
 }
 
+/*
+ * Set config options for correct operation
+ */
+static void *mysqlfs_init(struct fuse_conn_info *conn,
+                          struct fuse_config *cfg)
+{
+    /* Honour inode numbers we pass to getattr etc
+     */ 
+    cfg->use_ino = 1;
+
+    /* 
+     * Pick up changes straight away. This is also necessary for
+     * better hardlink support. When the kernel calls the unlink()
+     * handler, it does not know the inode of the to-be-removed entry
+     * and can therefore not invalidate the cache of the associated
+     * inode -- resulting in an incorrect st_nlink value being
+     * reported for any remaining hardlinks to this inode.
+     */
+    cfg->entry_timeout = 60;
+    cfg->attr_timeout = 10;
+    cfg->negative_timeout = 10;
+
+    cfg->nullpath_ok = 0;
+    return NULL;
+}
+
 /** used below in fuse_main() to define the entry points for a FUSE filesystem; this is the same VMT-like jump table used throughout the UNIX kernel. */
 static struct fuse_operations mysqlfs_oper = {
+    .init       = mysqlfs_init,
     .getattr	= mysqlfs_getattr,
     .readdir	= mysqlfs_readdir,
     .mknod	= mysqlfs_mknod,
@@ -735,7 +768,7 @@ int main(int argc, char *argv[])
     if (pool_init(&opt) < 0) {
         log_printf(LOG_ERROR, "Error: pool_init() failed\n");
         fuse_opt_free_args(&args);
-        return EXIT_FAILURE;        
+        return EXIT_FAILURE;
     }
 
     /*

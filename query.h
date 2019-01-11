@@ -37,7 +37,7 @@ long query_mkdir(MYSQL *mysql, const char* path, mode_t mode, long parent);
 int query_readdir(MYSQL *mysql, long inode, void *buf, fuse_fill_dir_t filler, int flag);
 int query_read(MYSQL *mysql, long inode, const char* buf, size_t size, off_t offset);
 int query_write(MYSQL *mysql, long inode, const char* buf, size_t size, off_t offset);
-int query_truncate(MYSQL *mysql, const char *path, off_t length);
+int query_truncate(MYSQL *mysql, long inode, off_t length);
 
 int query_symlink(MYSQL *mysql, const char* from, const char* to);	/**< NOT IMPLEMENTED NOR CALLED */
 int query_readlink(MYSQL *mysql, const char* path);			/**< NOT IMPLEMENTED NOR CALLED */

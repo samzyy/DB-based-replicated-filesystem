@@ -273,20 +273,16 @@ long query_inode(MYSQL *mysql, const char *path)
  *
  * @return 0 on success; non-zero return of mysql_query() on error
  * @param mysql handle to connection to the database
- * @param path pathname of file to truncate
+ * @param inode node to operate on
  * @param length new length of file
  */
-int query_truncate(MYSQL *mysql, const char *path, off_t length)
+int query_truncate(MYSQL *mysql, long inode, off_t length)
 {
     int ret;
     char sql[SQL_MAX];
     struct data_blocks_info info;
 
     fill_data_blocks_info(&info, length, 0);
-
-    long inode = query_inode(mysql, path);
-    if (inode < 0)
-      return inode;
 
     lock_inode(mysql, inode);
 
