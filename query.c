@@ -88,7 +88,7 @@ int query_getattr(MYSQL *mysql, const char *path, struct stat *stbuf)
       return ret;
 
     snprintf(sql, SQL_MAX,
-             "SELECT inode, mode, uid, gid, ctime, atime, mtime "
+             "SELECT inode, mode, uid, gid, ctime, atime, mtime, size "
              "FROM inodes WHERE inode=%ld",
              inode);
 
@@ -125,6 +125,7 @@ int query_getattr(MYSQL *mysql, const char *path, struct stat *stbuf)
     stbuf->st_ctime = atol(row[4]);
     stbuf->st_atime = atol(row[5]);
     stbuf->st_mtime = atol(row[6]);
+    stbuf->st_size = atol(row[7]);
     stbuf->st_nlink = nlinks;
 
     mysql_free_result(result);
@@ -139,7 +140,7 @@ int query_getattr(MYSQL *mysql, const char *path, struct stat *stbuf)
  * good testcase :)
  *
  * If any of the name, inode, parent, or nlinks are given, those values will be
- * recorded form the inode data to the given buffers.  The name is written to
+ * recorded from the inode data to the given buffers.  The name is written to
  * the given name_len.
  *
  * @return 0 if successful
@@ -493,8 +494,9 @@ int query_readdir(MYSQL *mysql, long inode, void *buf, fuse_fill_dir_t filler, i
     char sql[SQL_MAX];
     MYSQL_RES* result;
     MYSQL_ROW row;
+    struct stat st;
 
-    snprintf(sql, sizeof(sql), "SELECT name FROM tree WHERE parent = '%ld'",
+    snprintf(sql, sizeof(sql), "SELECT tree.name, tree.inode, inodes.mode FROM tree inner join inodes on tree.inode = inodes.inode WHERE tree.parent = '%ld'",
              inode);
 
     ret = mysql_query(mysql, sql);
@@ -509,8 +511,11 @@ int query_readdir(MYSQL *mysql, long inode, void *buf, fuse_fill_dir_t filler, i
         return -EIO;
     }
 
+    memset(&st, 0, sizeof st);
     while((row = mysql_fetch_row(result)) != NULL){
-        filler(buf, (char*)basename(row[0]), NULL, 0, 0);
+        st.st_ino = atol(row[1]);
+        st.st_mode = atol(row[2]);
+        filler(buf, (char*)basename(row[0]), &st, 0, 0);
     }
 
     mysql_free_result(result);
@@ -974,7 +979,7 @@ ssize_t query_size(MYSQL *mysql, long inode)
 
     if(mysql_num_rows(result) != 1 || mysql_num_fields(result) != 1){
         mysql_free_result(result);
-        log_printf(LOG_ERROR, "ERROR: non-unique number of roes for %d\n", inode);
+        log_printf(LOG_ERROR, "ERROR: non-unique number of rows for %d\n", inode);
         return -EIO;
     }
 
@@ -999,7 +1004,7 @@ ssize_t query_size(MYSQL *mysql, long inode)
  *
  * @return -ENXIO if the inode/seq pair is not found (zero rows returned, implying that block doesn't exist)
  * @return -EIO if no row is returned (implying an error in the query response, signaled by mysql_fetch_row() returning NULL)
- * @return 0 if the rown is NULL (implying no result?)
+ * @return 0 if the row is NULL (implying no result?)
  * @return 1 - DATA_BLOCK_SIZE (size of the actual block)
  * @param mysql handle to connection to the database
  * @param inode inode of the file in question
@@ -1069,6 +1074,16 @@ int query_rename(MYSQL *mysql, const char *from, const char *to)
     char esc_new_name[PATH_MAX * 2], esc_old_name[PATH_MAX * 2];
     char sql[SQL_MAX];
 
+    struct stat to_st;
+
+    
+    if (query_getattr(mysql, to, &to_st) != -ENOENT) {
+        if (S_ISDIR(to_st.st_mode))
+            return -EEXIST;
+    } else {
+        to_st.st_ino = 0;
+    }
+
     inode = query_inode(mysql, from);
 
     /* Lots of strdup()s follow because dirname() & basename()
@@ -1105,6 +1120,19 @@ int query_rename(MYSQL *mysql, const char *from, const char *to)
         log_printf(LOG_ERROR, "Error: mysql_query()\n");
         log_printf(LOG_ERROR, "mysql_error: %s\n", mysql_error(mysql));
         return -EIO;
+    }
+
+    if (to_st.st_ino) {
+        snprintf(sql, SQL_MAX, "DELETE FROM tree "
+                 "WHERE inode = %lu and name = '%s' and parent='%ld'",
+                 to_st.st_ino, esc_new_name, parent_to);
+        log_printf(LOG_D_SQL, "sql=%s\n", sql);
+        ret = mysql_query(mysql, sql);
+        if (ret) {
+            log_printf(LOG_ERROR, "Error: mysql_query()\n");
+            log_printf(LOG_ERROR, "mysql_error: %s\n", mysql_error(mysql));
+            return -EIO;
+        }
     }
 
     /*
