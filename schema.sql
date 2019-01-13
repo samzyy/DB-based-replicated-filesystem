@@ -25,7 +25,7 @@ CREATE TABLE `data_blocks` (
   `seq` int unsigned not null,
   `data` blob ,
   PRIMARY KEY  (`inode`, `seq`)
-) ENGINE=MyISAM DEFAULT CHARSET=binary;
+)  DEFAULT CHARSET=binary;
 
 --
 -- Table structure for table `inodes`
@@ -45,7 +45,7 @@ CREATE TABLE `inodes` (
   `size` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`inode`),
   KEY `inode` (`inode`,`inuse`,`deleted`)
-) ENGINE=MyISAM DEFAULT CHARSET=binary;
+) DEFAULT CHARSET=binary;
 
 /*!50003 SET @OLD_SQL_MODE=@@SQL_MODE*/;
 DELIMITER ;;
@@ -67,7 +67,7 @@ CREATE TABLE `tree` (
   UNIQUE KEY `name` (`name`,`parent`),
   KEY `inode` (`inode`),
   KEY `parent` (`parent`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) DEFAULT CHARSET=utf8;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
