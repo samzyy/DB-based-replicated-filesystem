@@ -9,6 +9,7 @@ MySQLfs is a FUSE filesystem driver which stores files in a MySQL database.
   - mysql-client libraries 5.0 or later
   - mysql-server 5.0 or later
   - fuse 2.5 or later
+  - autotools 
 
 * Build
 
